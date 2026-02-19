@@ -1,0 +1,8 @@
+tifffile 
+aicsimageio 
+scikit-image 
+numpy 
+pandas 
+sqlalchemy 
+ipykernel
+squidpy
