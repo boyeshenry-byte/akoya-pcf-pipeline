@@ -4,6 +4,8 @@ import tifffile
 import sqlite3
 from datetime import datetime
 from skimage.filters import gaussian
+from skimage import exposure
+from PIL import Image
 from ingestion import scan_for_files
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
@@ -113,6 +115,24 @@ def write_preprocessing_results(db_path, file_path, results):
     finally:
         conn.close()
 
+def save_composite_png(file_path, output_dir):
+    """
+    Save a composite PNG of all channels for visual QC
+    """
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    with tifffile.TiffFile(file_path) as tif:
+        series = tif.series[0]
+        for i, page in enumerate(series.pages):
+            channel = page.asarray()
+            if channel.max()> 0:
+                normalized = (channel/channel.max() * 255).astype(np.uint8)
+            else:
+                normalized = channel.astype(np.uint8)
+            Image.fromarray(normalized).save(f"{output_dir}/channel_{i}.png")
+    return
+
 if __name__ == "__main__":
     folder_name = input("Enter project folder name: ")
     file_path = (f"{ISILON_BASE}/{folder_name}")
@@ -128,5 +148,9 @@ if __name__ == "__main__":
         for r in result:
             print(f"  Channel {r['channel_index']} — {r['flag_message']}")
         write_preprocessing_results(db_path, file, result)
-        
+
+        output_dir = os.path.join(os.path.dirname(file), "qc_pngs")
+        save_composite_png(file, output_dir)
+        print(f" PNGs saved to {output_dir}")
+
     print("Done!")
