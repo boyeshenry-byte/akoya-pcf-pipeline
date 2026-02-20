@@ -31,3 +31,15 @@ create table pipeline_status(
     notes text --Flag failures and QC concerns
 );
 
+create table channel_stats(
+    stat_id integer primary key autoincrement, --Primary key, autoincrement
+    slide_id integer references slides(slide_id), --Foreign key (slide_id)
+    channel_index integer, --Index of channels run
+    channel_name text, --Name of channel
+    min_intensity real,  --Minimum intensity of the channel
+    max_intensity real, --Maximum intensity of the channel
+    nonzero_fraction real, --The nonzero fraction of the channel
+    flagged integer, --QC status of the channel
+    flag_message text, --Associated QC message
+    processed_at datetime --When the slide was preprocessed
+)

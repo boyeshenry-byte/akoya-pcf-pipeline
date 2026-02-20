@@ -75,6 +75,44 @@ def process_slide(file_path):
 
     return res
 
+def write_preprocessing_results(db_path, file_path, results):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # Look up slide_id by file path
+    cursor.execute("SELECT slide_id FROM slides WHERE file_path = ?", (file_path,))
+    row = cursor.fetchone()
+    
+    if row is None:
+        print(f"No slide found for {file_path}")
+        conn.close()
+        return
+
+    slide_id = row[0]
+    any_flagged = any(r['flagged'] for r in results)
+
+    try:
+        for r in results:
+            cursor.execute("""INSERT INTO channel_stats 
+                (slide_id, channel_index, min_intensity, max_intensity, 
+                mean_intensity, nonzero_fraction, flagged, flag_message, processed_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (slide_id, r['channel_index'],
+                r['stats']['min'], r['stats']['max'],
+                r['stats']['mean'], r['stats']['nonzero_fraction'],
+                r['flagged'], r['flag_message'], datetime.now()))
+        
+        # Update pipeline status
+        status = 'Failed' if any_flagged else 'Complete'
+        cursor.execute("UPDATE pipeline_status SET preprocessing_qc = ? WHERE slide_id = ?",
+                      (status, slide_id))
+        conn.commit()
+    except Exception as e:
+        print(f"Error: {e}")
+        conn.rollback()
+    finally:
+        conn.close()
+
 if __name__ == "__main__":
     folder_name = input("Enter project folder name: ")
     file_path = (f"{ISILON_BASE}/{folder_name}")
@@ -89,5 +127,6 @@ if __name__ == "__main__":
         result = process_slide(file)
         for r in result:
             print(f"  Channel {r['channel_index']} — {r['flag_message']}")
+        write_preprocessing_results(db_path, file, result)
         
     print("Done!")
