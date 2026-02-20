@@ -3,7 +3,9 @@ import tifffile
 import sqlite3
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from config import ISILON_BASE, DB_PATH
+
+ISILON_BASE = os.environ.get("AKOYA_ISILON")
+DB_PATH = os.environ.get("AKOYA_DB")
 
 
 def scan_for_files(base_path):
