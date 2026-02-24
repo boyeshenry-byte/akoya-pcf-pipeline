@@ -85,6 +85,7 @@ def write_preprocessing_results(db_path, file_path, results):
     cursor.execute("SELECT slide_id FROM slides WHERE file_path = ?", (file_path,))
     row = cursor.fetchone()
     
+
     if row is None:
         print(f"No slide found for {file_path}")
         conn.close()
@@ -115,6 +116,26 @@ def write_preprocessing_results(db_path, file_path, results):
     finally:
         conn.close()
 
+def is_already_processed(db_path, file_path):
+    """
+    Check if a slide has already been processed in channel_stats.
+    Returns True if already processed.
+    """
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT slide_id FROM slides WHERE file_path = ?", (file_path,))
+    row = cursor.fetchone()
+    
+    if row is None:
+        conn.close()
+        return False
+    
+    cursor.execute("SELECT COUNT(*) FROM channel_stats WHERE slide_id = ?", (row[0],))
+    result = cursor.fetchone()[0] > 0
+    conn.close()
+    return result
+
 def save_composite_png(file_path, output_dir):
     """
     Save a composite PNG of all channels for visual QC
@@ -143,6 +164,9 @@ if __name__ == "__main__":
     print(f"Found {len(files)} files")
 
     for file in files:
+        if is_already_processed(db_path, file):
+            print(f"Skipping {os.path.basename(file)}: already processed.")
+            continue
         print(f"Preprocessing {os.path.basename(file)}...")
         result = process_slide(file)
         for r in result:

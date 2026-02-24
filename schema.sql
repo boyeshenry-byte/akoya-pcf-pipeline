@@ -38,6 +38,7 @@ create table channel_stats(
     channel_name text, --Name of channel
     min_intensity real,  --Minimum intensity of the channel
     max_intensity real, --Maximum intensity of the channel
+    mean_intensity real, --Mean intensity of the channel
     nonzero_fraction real, --The nonzero fraction of the channel
     flagged integer, --QC status of the channel
     flag_message text, --Associated QC message
