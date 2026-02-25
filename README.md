@@ -108,6 +108,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 ## Citation
-If you use this pipeline in your research, please cite this repository:
-Henry Boyes. Akoya PCF Analysis Pipeline. Cleveland Clinic, 2026.
-https://github.com/boyeshenry-byte/akoya-pcf-pipeline
+- If you use this pipeline in your research, please cite this repository:
+- Henry Boyes. Akoya PCF Analysis Pipeline. Cleveland Clinic, 2026.
+- https://github.com/boyeshenry-byte/akoya-pcf-pipeline
