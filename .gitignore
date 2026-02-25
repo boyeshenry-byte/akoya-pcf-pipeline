@@ -1,7 +1,7 @@
 akoya_env/
 akoya.db
 *.qptiff
-__pycache__/
+__pycache__
 .ipynb_checkpoints/
 config.py
 notebooks/data/anndata/imc.h5ad

@@ -12,7 +12,7 @@ create table slides(
     patient_id text, -- Patient identifier
     tissue_region text, -- Where tissue is from (eg tumor core)
     run_id integer references runs(run_id), -- Foreign key (runs.run_id)
-    file_path text, -- /home/boyesh/IMLAkoyafusion/<subfolder>/<filename>.qptiff
+    file_path text not null, -- /home/boyesh/IMLAkoyafusion/<subfolder>/<filename>.qptiff
     file_name text, -- Original file name
     num_channels integer, -- Number of channels in image
     date_added datetime -- when record was created
@@ -20,7 +20,7 @@ create table slides(
 
 create table pipeline_status(
     status_id integer primary key autoincrement, --Primary key, autoincrement
-    slide_id integer references slides(slide_id), --Foreign key (slides.slide_id)
+    slide_id integer references slides(slide_id) not null, --Foreign key (slides.slide_id)
     ingestion text, --Not started/In progress/Complete/Failed
     preprocessing_qc text, --Not started/In progress/Complete/Failed
     segmentation text, --Not started/In progress/Complete/Failed
@@ -42,5 +42,17 @@ create table channel_stats(
     nonzero_fraction real, --The nonzero fraction of the channel
     flagged integer, --QC status of the channel
     flag_message text, --Associated QC message
-    processed_at datetime --When the slide was preprocessed
-)
+    processed_at datetime not null --When the slide was preprocessed
+);
+
+create table segmentation_results(
+    segment_id integer primary key autoincrement, --Primary key, autoincrement
+    slide_id integer references slides(slide_id) not null, -- Foreign key (slide_id)
+    cell_count integer, --Total cells detected
+    diameter_used real, --Diameter used for segmentation
+    tile_size integer, --Tile size used
+    tile_overlap integer, --Tile overlap used
+    segment_status text not null, --Passed/failed
+    error_message text, --Null on success, reason on failure
+    processed_at datetime not null --When the slide was segmented
+);

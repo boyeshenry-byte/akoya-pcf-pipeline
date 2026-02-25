@@ -6,3 +6,5 @@ pandas
 sqlalchemy 
 ipykernel
 squidpy
+cellpose
+datetime

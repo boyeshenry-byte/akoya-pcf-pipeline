@@ -1,15 +1,33 @@
+# =============================================================================
+# preprocessing.py
+# Author: Henry Boyes
+# Institution: Cleveland Clinic
+# Date: 2/20/2026
+# Version: v0.1.0
+# Contact: boyeshenry@gmail.com
+# Description: This script computes the channel statistics for each channel of each slide.
+# It flags channels that have low signals and corrects their illumination. It then writes the 
+# channel statistics to the database and saves a composite PNG.
+# =============================================================================
+
 import os
 import numpy as np
 import tifffile
 import sqlite3
+import argparse
 from datetime import datetime
 from skimage.filters import gaussian
 from skimage import exposure
 from PIL import Image
 from ingestion import scan_for_files
+from utils import is_already_processed
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 DB_PATH = os.environ.get("AKOYA_DB")
+
+parser = argparse.ArgumentParser(description="Project folder name and cell diameter")
+parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+args = parser.parse_args()
 
 def compute_channel_stats(channel_array):
     """
@@ -55,7 +73,7 @@ def process_slide(file_path):
     Run preprocessing on all channels of a QPTIFF.
     Returns a list of dicts - one per channel.
     """
-
+    
     res = []
 
     with tifffile.TiffFile(file_path) as tif:
@@ -116,25 +134,6 @@ def write_preprocessing_results(db_path, file_path, results):
     finally:
         conn.close()
 
-def is_already_processed(db_path, file_path):
-    """
-    Check if a slide has already been processed in channel_stats.
-    Returns True if already processed.
-    """
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT slide_id FROM slides WHERE file_path = ?", (file_path,))
-    row = cursor.fetchone()
-    
-    if row is None:
-        conn.close()
-        return False
-    
-    cursor.execute("SELECT COUNT(*) FROM channel_stats WHERE slide_id = ?", (row[0],))
-    result = cursor.fetchone()[0] > 0
-    conn.close()
-    return result
 
 def save_composite_png(file_path, output_dir):
     """
@@ -155,8 +154,7 @@ def save_composite_png(file_path, output_dir):
     return
 
 if __name__ == "__main__":
-    folder_name = input("Enter project folder name: ")
-    file_path = (f"{ISILON_BASE}/{folder_name}")
+    folder_name = args.project
     db_path = DB_PATH
     
     print("Scanning for files...")
@@ -164,7 +162,7 @@ if __name__ == "__main__":
     print(f"Found {len(files)} files")
 
     for file in files:
-        if is_already_processed(db_path, file):
+        if is_already_processed(db_path, file, "channel_stats"):
             print(f"Skipping {os.path.basename(file)}: already processed.")
             continue
         print(f"Preprocessing {os.path.basename(file)}...")
