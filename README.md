@@ -30,22 +30,23 @@ pip install -r requirements.txt
 ---
 
 ## Project structure
-|-README.md
-   |-methods_log.md
-   |-tests
-   |-requirements.txt
-   |-notebooks
-   |---01_metadata_extraction_testing.ipynb
-   |---02_preprocessing_exploration.ipynb
-   |-scripts
-   |---init_db.py
-   |---preprocessing.py
-   |---segmentation.py
-   |---utils.py
-   |---ingestion.py
-   |-schema.sql
-   |-data
-
+```
+akoya_pcf/
+├── README.md
+├── methods_log.md
+├── requirements.txt
+├── schema.sql
+├── tests/
+├── notebooks/
+│   ├── 01_metadata_extraction_testing.ipynb
+│   └── 02_preprocessing_exploration.ipynb
+└── scripts/
+    ├── ingestion.py
+    ├── preprocessing.py
+    ├── segmentation.py
+    ├── utils.py
+    └── init_db.py
+```
 ---
 
 ## Usage
@@ -79,7 +80,7 @@ The pipeline uses a SQLite database with the following tables:
 - `channel_stats` - per-channel QC statistics from preprocessing
 - `segmentation_results` - Cellpose segmentation outputs and status per slide
 
-## 👤 Author
+##  Author
 
 **Henry Boyes**
 - GitHub: [@boyeshenry-byte](https://github.com/boyeshenry-byte)
@@ -88,16 +89,16 @@ The pipeline uses a SQLite database with the following tables:
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
-**Cellpose (Stringer et al.)** - Cell segmentation model used in the segmentation stage
-**Cleveland Clinic** -institutional support
+- **Cellpose (Stringer et al.)** - Cell segmentation model used in the segmentation stage
+- **Cleveland Clinic** -institutional support
 
 ---
 
