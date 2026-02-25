@@ -57,16 +57,21 @@ Set the following before running:
 export AKOYA_ISILON=/path/to/isilon
 export AKOYA_DB=/path/to/akoya.db
 ```
+---
 
 Execute in order:
-1.) **init_db.py** - creates a database to store metadata
-    - python scripts/init_db.py
-2.) **ingestion.py** - extracts metadata and stores it in the db
-    - python scripts/ingestion.py --project my_project
-3.) **preprocessing.py** - compute channel statistics and correct low signals, save statistics to db and save QC PNG's
-    - python scripts/preprocessing.py --project my_project
-4.) **segmentation.py** - Extract DAPI channel and segments via Cellpose. Saves masks in project dir
-     -python scripts/segmentation.py --project my_project --diameter 0
+
+1. **init_db.py** - creates a database to store metadata
+   - `python scripts/init_db.py`
+
+2. **ingestion.py** - extracts metadata and stores it in the db
+   - `python scripts/ingestion.py --project my_project`
+
+3. **preprocessing.py** - compute channel statistics and correct low signals, save statistics to db and save QC PNGs
+   - `python scripts/preprocessing.py --project my_project`
+
+4. **segmentation.py** - Extract DAPI channel and segment via Cellpose. Saves masks in project dir
+   - `python scripts/segmentation.py --project my_project --diameter 0`
 
 ---
 
