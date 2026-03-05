@@ -21,6 +21,7 @@ from skimage import exposure
 from PIL import Image
 from ingestion import scan_for_files
 from utils import is_already_processed
+import xml.etree.ElementTree as ET
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 DB_PATH = os.environ.get("AKOYA_DB")
@@ -80,6 +81,9 @@ def process_slide(file_path):
         series = tif.series[0]
         for i, page in enumerate(series.pages):
             channel = page.asarray()
+            meta = ED.fromstring(page.description)
+            name = meta.find('Name')
+            channel_name = name.text if name is not None else None
             stats = compute_channel_stats(channel)
             flagged, message = flag_low_signals(stats)
 

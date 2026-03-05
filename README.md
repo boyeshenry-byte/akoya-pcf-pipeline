@@ -6,7 +6,7 @@
 
 ## Project Overview
 
-This pipeline ingests QPTIFF images generated from Akoya's PhenoCycler Fusion instrument, processes them, and segments them for downstream analysis. 
+This pipeline ingests QPTIFF images generated from Akoya's PhenoCycler Fusion instrument, processes them, segments the image, and extracts the cell features for downstream analysis. 
 
 ---
 
@@ -39,8 +39,11 @@ akoya_pcf/
 ├── tests/
 ├── notebooks/
 │   ├── 01_metadata_extraction_testing.ipynb
-│   └── 02_preprocessing_exploration.ipynb
+│   ├── 02_preprocessing_exploration.ipynb
+│   ├── 03_segmentation_testing.ipynb
+│   └── 04_feature_extraction_testing.ipynb
 └── scripts/
+    ├── feature_extraction.py
     ├── ingestion.py
     ├── preprocessing.py
     ├── segmentation.py
@@ -71,7 +74,10 @@ Execute in order:
    - `python scripts/preprocessing.py --project my_project`
 
 4. **segmentation.py** - Extract DAPI channel and segment via Cellpose. Saves masks in project dir
-   - `python scripts/segmentation.py --project my_project --diameter 0`
+   - `python scripts/segmentation.py --project my_project`
+
+5. **feature_extraction.py** - Extract cell features and channel intensities via `regionprops`. Saves the results to db
+   -`python scripts/feature_extraction.py --project my_project`
 
 ---
 
@@ -84,6 +90,8 @@ The pipeline uses a SQLite database with the following tables:
 - `pipeline_status` - tracks processing status across all pipeline stages per slide
 - `channel_stats` - per-channel QC statistics from preprocessing
 - `segmentation_results` - Cellpose segmentation outputs and status per slide
+- `cell_features` - features of all cells per slide
+- `cell_intensity` - cell intensity per channel per slide
 
 ##  Author
 
@@ -108,6 +116,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 ## Citation
-- If you use this pipeline in your research, please cite this repository:
-- Henry Boyes. Akoya PCF Analysis Pipeline. Cleveland Clinic, 2026.
-- https://github.com/boyeshenry-byte/akoya-pcf-pipeline
+If you use this pipeline in your research, please cite this repository:  
+Henry Boyes. Akoya PCF Analysis Pipeline. Cleveland Clinic, 2026.  
+https://github.com/boyeshenry-byte/akoya-pcf-pipeline  

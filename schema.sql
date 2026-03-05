@@ -56,3 +56,24 @@ create table segmentation_results(
     error_message text, --Null on success, reason on failure
     processed_at datetime not null --When the slide was segmented
 );
+
+create table cell_features(
+    cell_id integer primary key autoincrement, --Primary key autoincrementing
+    slide_id integer references slides(slide_id) not null, --Foreign key (slide_id)
+    label integer not null, --Cell label from the mask
+    area real, --Area of the cell
+    centroid_x real, --X coordinate of the cell's centroid
+    centroid_y real, --Y coordinate of the cell's centroid
+    eccentricity real, --How elongated is the cell (0=circle, 1=line)
+    perimeter real, --Boundary length of the cell
+    solidity real --How convex the cell is (filled vs irregular)
+);
+
+create table cell_intensity(
+    intensity_id integer primary key autoincrement, --Primary key autoincrementing
+    cell_id integer references cell_features(cell_id) not null, --Foreign key (cell_id)
+    channel_index integer references channel_stats(channel_index) not null, --Foreign key (channel_index)
+    channel_name text, --Channel name
+    mean_intensity real not null, --Average cell intensity
+    max_intensity real not null --Max cell intensity
+);
