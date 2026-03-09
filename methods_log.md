@@ -54,11 +54,17 @@ without excessive redundant computation.
 ---
 
 ## Feature extraction
-*Last updated: 2026-03-05*
+*Last updated: 2026-03-09*
 
-**regionprops** - used skimage's `regionprops` to extract cell morphological features and intensity values
+**regionprops** - Used skimage's `regionprops` to extract cell morphological features and intensity values. 
+Initially, `.mean_intensity` and `.max_intensity` were used, however, those methodologies are deprecated. 
+Updated to `.intensity_mean` and `.intensity_max` respectively
 
 **storage decisions** - Per-cell storage used with intended spatial analysis later in pipeline. Aggregating to slide level now would remove the option for downstream phenotyping. Long format was decided on for adaptability of cell features. Long format is used for intensities due to their inherently multi-valued nature. The features were separated as standard normalization and to avoid repeating features for every data channel
+
+**cell count discrepancy** - Upon analysis there is a roughly 10 to 15% discrepancy between segmentation and feature extraction counts. This is consistent across all 5 prototyping slides and is likely fragments or artifacts from the tiling process, rather than actual counts. Considering this is replicated across all five slides it is believed to be a filtering effect rather than a random error. 
+
+**Validation check** - The intensity records show 24M cells. 3M x 8 Channels is 24M. This shows consistency in the counts across the channels and scikit-image.
 
 ---
 

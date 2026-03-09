@@ -1,6 +1,6 @@
 # Akoya PCF analysis 
 
-**A pipeline for processing and segmentation of QPTIFF files from the Akoya PCF instrument.**
+**A pipeline for processing, segmentation, and feature extraction of QPTIFF files from the Akoya PCF instrument.**
 
 ---
 
@@ -14,7 +14,7 @@ This pipeline ingests QPTIFF images generated from Akoya's PhenoCycler Fusion in
 
 ### Requirements
 
--python 3.11+
+- python 3.11+
 
 ### Installation
 
@@ -77,7 +77,7 @@ Execute in order:
    - `python scripts/segmentation.py --project my_project`
 
 5. **feature_extraction.py** - Extract cell features and channel intensities via `regionprops`. Saves the results to db
-   -`python scripts/feature_extraction.py --project my_project`
+   - `python scripts/feature_extraction.py --project my_project`
 
 ---
 
@@ -91,7 +91,7 @@ The pipeline uses a SQLite database with the following tables:
 - `channel_stats` - per-channel QC statistics from preprocessing
 - `segmentation_results` - Cellpose segmentation outputs and status per slide
 - `cell_features` - features of all cells per slide
-- `cell_intensity` - cell intensity per channel per slide
+- `cell_intensity` - per-cell marker intensity values across all channels
 
 ##  Author
 
@@ -111,6 +111,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ##  Acknowledgments
 
 - **Cellpose (Stringer et al.)** - Cell segmentation model used in the segmentation stage
+- **scikit-image** - morphological feature extraction via `regionprops`
 - **Cleveland Clinic** -institutional support
 
 ---

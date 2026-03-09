@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/5/2026
-# Version: v0.1.0
+# Version: v0.1.01
 # Contact: boyeshenry@gmail.com
 # Description: This script takes in mask files created by segmenting .tiff files from the Akoya PCF. It extracts the cell features
 # and intensities then writes them to a database for spatial analysis.
@@ -96,8 +96,8 @@ def extract_intensity(mask, file_path):
                     'channel_name': channel_name,
                     'channel_index': i,
                     'label': prop.label,
-                    'mean_intensity': prop.mean_intensity,
-                    'max_intensity': prop.max_intensity
+                    'mean_intensity': prop.intensity_mean,
+                    'max_intensity': prop.intensity_max
                 }
 
                 res.append(intensity_dict)

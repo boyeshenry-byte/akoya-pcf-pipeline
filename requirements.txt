@@ -8,3 +8,4 @@ squidpy==1.8.1
 cellpose==4.0.8
 pillow==12.1.1
 scipy==1.16.3
+anndata==0.12.10
