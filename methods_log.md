@@ -18,7 +18,7 @@ Scans project folders on the Isilon for .QPTIFF files and extracts metadata incl
 ---
 
 ## Preprocessing
-*Last updated: 2026-03-05*
+*Last updated: 2026-03-11*
 
 **Channel statistics** - Min, max, mean intensity and nonzero fraction computed per channel.
 
@@ -27,6 +27,10 @@ channels are excluded from illumination correction.
 
 **Illumination correction** - Gaussian background subtraction applied to unflagged channels. 
 Sigma set to 50. To be tuned based on prototype data validation.
+
+**Added QC PNG subfolders** - Added subfolders to save per slide QC PNGs. 
+
+**Channel name** - Added a fix to write the channel name to the database. 
 
 ---
 
@@ -68,9 +72,31 @@ Updated to `.intensity_mean` and `.intensity_max` respectively
 
 ---
 
+## AnnData Export
+*Last updated: 2026-03-13*
+
+**AnnData Export** - Created separately from other pipelines to ensure usability across analyses.
+
+**AnnData Design** - Considering the usability for projects, one file per slide was chosen instead of one file per project. The .h5ad file was mapped to the following:
+* X - mean_intensity from cell_intensity
+* layers['max_intensity'] - max_intensity from cell_intensity
+* obs - cell_features (area, centroid_x and _y, eccentricity, perimeter, and solidity) plus slide_id and slide_name joined from slides
+* var - channel_stats (channel_name as index, min_intensity, max_intensity, mean_intensity, nonzero_fraction, flagged, and flag_message)
+* obsm['spatial'] - centroid_x and _y from cell_features stacked as a numpy array following Squidpy's spatial coordinate system
+
+**Cell count discrepancy check** - Considering the discrepancy between segmentation_results and cell_features's cell counts a check was added to flag if there is a more than 20% difference between the two. Roughly 15% discrepancy is expected from tiling artifacts and as such, 20% was decided on to leave space for variance. For the prototyping run, 10-15% variation was observed which is in the expected range. 
+
+**NULL byte bug** - A null byte bug was discovered in channel_stats that caused an issue in converting to .h5ad format. This was solved by ensuring the numpy values were cast to floats() before writing to SQLite.
+
+---
+
 ## Planned
 - Validate and fix Cellpose diameter based on prototype tonsil data
 - Tune Gaussian sigma for illumination correction
 - Establish formal validation workflow for segmentation QC
 - Consider pathologist review of representative segmentation overlays
 - Validate feature extraction
+- Phenotyping via Lieden clustering using Scanpy
+- Spatial analysis via Squidpy
+- PostgreSQL migration for external collaboration
+- JOSS publication

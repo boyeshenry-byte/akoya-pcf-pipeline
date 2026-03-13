@@ -1,12 +1,12 @@
 # Akoya PCF analysis 
 
-**A pipeline for processing, segmentation, and feature extraction of QPTIFF files from the Akoya PCF instrument.**
+**A pipeline for processing, segmentation, feature extraction, and AnnData .h5ad generation for QPTIFF files from the Akoya PCF instrument.**
 
 ---
 
 ## Project Overview
 
-This pipeline ingests QPTIFF images generated from Akoya's PhenoCycler Fusion instrument, processes them, segments the image, and extracts the cell features for downstream analysis. 
+This pipeline ingests QPTIFF images generated from Akoya's PhenoCycler Fusion instrument, processes them, segments the image, and extracts the cell features. It then saves the data in a .h5ad file for downstream analysis.
 
 ---
 
@@ -41,8 +41,10 @@ akoya_pcf/
 │   ├── 01_metadata_extraction_testing.ipynb
 │   ├── 02_preprocessing_exploration.ipynb
 │   ├── 03_segmentation_testing.ipynb
-│   └── 04_feature_extraction_testing.ipynb
+│   ├── 04_feature_extraction_testing.ipynb
+│   └── 05_anndata_export_testing.ipynb
 └── scripts/
+    ├── anndata_export.py
     ├── feature_extraction.py
     ├── ingestion.py
     ├── preprocessing.py
@@ -79,6 +81,9 @@ Execute in order:
 5. **feature_extraction.py** - Extract cell features and channel intensities via `regionprops`. Saves the results to db
    - `python scripts/feature_extraction.py --project my_project`
 
+6. **anndata_export.py** - Converts the extracted features and metadata into an AnnData .h5ad file for phenotyping and spatial analysis.
+   - `python scripts/anndata_export.py --project my_project`
+
 ---
 
 ## Database schema
@@ -93,7 +98,29 @@ The pipeline uses a SQLite database with the following tables:
 - `cell_features` - features of all cells per slide
 - `cell_intensity` - per-cell marker intensity values across all channels
 
-##  Author
+---
+
+## Citation
+If you use this pipeline in your research, please cite the repository:  
+Henry Boyes. Akoya PCF Analysis Pipeline. Cleveland Clinic, 2026.  
+https://github.com/boyeshenry-byte/akoya-pcf-pipeline
+
+---
+
+## Software Citations
+
+AnnData
+Virshup et al., (2024). anndata: Access and store annotated data matrices. Journal of Open Source Software, 9(101), 4371. https://doi.org/10.21105/joss.04371
+
+Cellpose
+Stringer, C., Wang, T., Michaelos, M., & Pachitariu, M. (2021). Cellpose: a generalist algorithm for cellular segmentation. Nature Methods, 18, 100–106. https://doi.org/10.1038/s41592-020-01018-x
+
+scikit-image
+van der Walt, S., Schönberger, J.L., Nunez-Iglesias, J., Boulogne, F., Warner, J.D., Yager, N., Gouillart, E., Yu, T., & the scikit-image contributors. scikit-image: Image processing in Python. PeerJ 2:e453 (2014). https://doi.org/10.7717/peerj.453
+
+---
+
+  ##  Author
 
 **Henry Boyes**
 - GitHub: [@boyeshenry-byte](https://github.com/boyeshenry-byte)
@@ -110,13 +137,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ##  Acknowledgments
 
-- **Cellpose (Stringer et al.)** - Cell segmentation model used in the segmentation stage
-- **scikit-image** - morphological feature extraction via `regionprops`
 - **Cleveland Clinic** -institutional support
 
 ---
 
-## Citation
-If you use this pipeline in your research, please cite this repository:  
-Henry Boyes. Akoya PCF Analysis Pipeline. Cleveland Clinic, 2026.  
-https://github.com/boyeshenry-byte/akoya-pcf-pipeline  
