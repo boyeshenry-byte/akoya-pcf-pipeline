@@ -25,6 +25,7 @@ create table pipeline_status(
     preprocessing_qc text, --Not started/In progress/Complete/Failed
     segmentation text, --Not started/In progress/Complete/Failed
     feature_extraction text, --Not started/In progress/Complete/Failed
+    anndata_export text, --Not Started/In Progress/Complete/Failed
     phenotyping text, --Not started/In progress/Complete/Failed
     spatial_analysis text, --Not started/In progress/Complete/Failed
     last_update datetime, --Timestamp of most recent status change
