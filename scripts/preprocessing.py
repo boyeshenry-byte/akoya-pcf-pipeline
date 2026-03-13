@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 2/20/2026
-# Version: v0.1.01
+# Version: v0.1.02
 # Contact: boyeshenry@gmail.com
 # Description: This script computes the channel statistics for each channel of each slide.
 # It flags channels that have low signals and corrects their illumination. It then writes the 
@@ -37,10 +37,10 @@ def compute_channel_stats(channel_array):
 
     res = {
         'shape': channel_array.shape,
-        'min': channel_array.min(),
-        'max': channel_array.max(),
-        'mean': channel_array.mean(),
-        'nonzero_fraction': np.count_nonzero(channel_array) / channel_array.size
+        'min': float(channel_array.min()),
+        'max': float(channel_array.max()),
+        'mean': float(channel_array.mean()),
+        'nonzero_fraction': float(np.count_nonzero(channel_array) / channel_array.size)
     }
 
     return res
@@ -81,7 +81,7 @@ def process_slide(file_path):
         series = tif.series[0]
         for i, page in enumerate(series.pages):
             channel = page.asarray()
-            meta = ED.fromstring(page.description)
+            meta = ET.fromstring(page.description)
             name = meta.find('Name')
             channel_name = name.text if name is not None else None
             stats = compute_channel_stats(channel)
@@ -92,6 +92,7 @@ def process_slide(file_path):
 
             res.append({
                 'channel_index': i,
+                'channel_name': channel_name,
                 'stats': stats,
                 'flagged': flagged,
                 'flag_message': message
@@ -119,10 +120,10 @@ def write_preprocessing_results(db_path, file_path, results):
     try:
         for r in results:
             cursor.execute("""INSERT INTO channel_stats 
-                (slide_id, channel_index, min_intensity, max_intensity, 
+                (slide_id, channel_index, channel_name, min_intensity, max_intensity, 
                 mean_intensity, nonzero_fraction, flagged, flag_message, processed_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (slide_id, r['channel_index'],
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (slide_id, r['channel_index'], r['channel_name'],
                 r['stats']['min'], r['stats']['max'],
                 r['stats']['mean'], r['stats']['nonzero_fraction'],
                 r['flagged'], r['flag_message'], datetime.now()))
@@ -150,11 +151,15 @@ def save_composite_png(file_path, output_dir):
         series = tif.series[0]
         for i, page in enumerate(series.pages):
             channel = page.asarray()
+            meta = ET.fromstring(page.description)
+            name = meta.find('Name')
+            channel_name = name.text if name is not None else None
+            filename = channel_name if channel_name else f"channel_{i}"
             if channel.max()> 0:
                 normalized = (channel/channel.max() * 255).astype(np.uint8)
             else:
                 normalized = channel.astype(np.uint8)
-            Image.fromarray(normalized).save(f"{output_dir}/channel_{i}.png")
+            Image.fromarray(normalized).save(f"{output_dir}/{filename}.png")
     return
 
 if __name__ == "__main__":
@@ -175,7 +180,8 @@ if __name__ == "__main__":
             print(f"  Channel {r['channel_index']} — {r['flag_message']}")
         write_preprocessing_results(db_path, file, result)
 
-        output_dir = os.path.join(os.path.dirname(file), "qc_pngs")
+        slide_name = os.path.splitext(os.path.basename(file))[0]
+        output_dir = os.path.join(os.path.dirname(file), "qc_pngs", slide_name)
         save_composite_png(file, output_dir)
         print(f" PNGs saved to {output_dir}")
 
