@@ -1,0 +1,233 @@
+# =============================================================================
+# phenotyping.py
+# Author: Henry Boyes
+# Institution: Cleveland Clinic
+# Date: 3/16/2026
+# Version: v0.1.0
+# Contact: boyeshenry@gmail.com
+# Description: This script takes the AnnData files and preprocesses them, performs Leiden clustering, and UMAP embedding. 
+# It then plots the UMAP data based on marker and cluster. It creates a heatmap based on the clustering and save the figures.
+# =============================================================================
+
+import os
+import argparse
+import numpy as np 
+import sqlite3
+import anndata as ad 
+import scanpy as sc 
+
+ISILON_BASE = os.environ.get("AKOYA_ISILON")
+DB_PATH = os.environ.get("AKOYA_DB")
+
+parser = argparse.ArgumentParser(description="Project folder name and cell diameter")
+parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+args = parser.parse_args()
+
+def find_slides(cursor, project):
+    """
+    This function checks if a slide has been completed anndata_export. It returns a tuple of slide_id and slide_name
+
+    : ARGS :
+
+    cursor : sqlite3.cursor
+        Active database cursor for executing queries
+
+    project : str
+        The project/dir name, given by argparse
+
+    
+    : RETURNS :
+
+    res : list
+        A list of tuples of slide_id and slide_name for the project
+    """
+
+    project_filter = f"%{project}%"
+
+    cursor.execute("""SELECT s.slide_id, s.slide_name
+    FROM slides s
+    JOIN pipeline_status ps ON
+        s.slide_id = ps.slide_id
+    where ps.anndata_export ='Complete'
+    AND ps.phenotyping != 'Complete'
+    AND s.file_path LIKE ?;""", (project_filter,))
+
+    res = cursor.fetchall()
+
+    if res:
+        return res
+    else:
+        print('No data found! Please check the database.')
+
+def preprocess(adata):
+    """
+    This function stores the copy raw AnnData values, the normalizes the values using arcsinh with a cofactor of 5.
+
+    : ARGS : 
+    
+    adata : AnnData object
+        An imported .h5ad file
+
+    : RETURNS : 
+
+    adata : AnnData object
+        A preprocessed AnnData file
+    """
+
+    cofactor = 5
+
+    adata.raw = adata
+    adata.X = np.arcsinh(adata.X/cofactor)
+
+    return adata
+
+def dimension_reduction(adata):
+    """
+    This function applies PCA reduction and neighbors graphing to the AnnData object
+
+    : ARGS : 
+
+    adata : AnnData object
+        The preprocessed AnnData object
+
+    : RETURNS : 
+
+    adata : AnnData object
+        An AnnData object with PCA reduction and neighbors graphing added
+    """
+
+    sc.pp.pca(adata)
+    sc.pp.neighbors(adata)
+
+    return adata
+
+def cluster(adata):
+    """
+    This function clusters the AnnData using Leiden clustering. It uses a default resolution of 0.5
+
+    : ARGS : 
+
+    adata : AnnData object
+        The reduced AnnData object from dimension_reduction
+
+    : RETURNS :
+
+    adata : AnnData object
+        An AnnData object with clustering applied
+    """
+
+    sc.tl.leiden(adata, resolution=0.5, flavor='igraph', n_iterations=2, directed=False) #using default args
+
+    return adata
+
+def embed(adata):
+    """
+    This function embeds the UMAP data in the AnnData object
+
+    : ARGS :
+
+    adata : AnnData object
+        The AnnData object that has neighbor_graphing applied
+
+    : RETURNS :
+
+    adata : AnnData object
+        The AnnData object with UMAP embeded
+    """
+
+    sc.tl.umap(adata)
+
+    return adata
+
+def qc_plot(adata, output_dir, slide_id):
+    """
+    This function  plots a UMAP colored by Leiden clusters, a UMAP colored by marker, and a heatmap per cluster. 
+    It then saves them to the dir
+
+    : ARGS : 
+
+    adata : AnnData object
+        An AnnData object that has UMAP embeded
+
+    output_dir : str
+        A str to the output dir
+    """
+
+    sc.settings.figdir = output_dir
+
+    sc.pl.umap(adata, color='leiden', save=f'slide{slide_id}_leiden.png', show=False)
+
+    sc.pl.umap(adata, color=adata.var_names.tolist(), save=f'_slide{slide_id}_markers.png', show=False)
+
+    sc.pl.heatmap(adata, var_names=adata.var_names.tolist(), groupby='leiden', save=f'_slide{slide_id}.png', show=False)
+
+    return
+
+def update_pipeline_status(cursor, status, slide_id):
+    """
+    This function updates the pipelines status
+
+    : ARGS : 
+
+    cursor : sqlite3.cursor
+        Active database cursor for executing queries
+    
+    slide_id : int
+        The integer primary key from the akoya.db
+    """
+
+    cursor.execute("UPDATE pipeline_status SET phenotyping = ? WHERE slide_id = ?", (status, slide_id))
+
+    return
+
+if __name__ == "__main__":
+    folder_name = args.project
+    db_path = DB_PATH
+    project_path = f"{ISILON_BASE}/{folder_name}"
+
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    phenotyping_dir = os.path.join(project_path, 'phenotyping')
+    figures_dir = os.path.join(phenotyping_dir, 'figures')
+    os.makedirs(phenotyping_dir, exist_ok=True)
+    os.makedirs(figures_dir, exist_ok=True)
+    print(f"Figure directory ready: {figures_dir}")
+
+    print("Fetching slides")
+    slides = find_slides(cursor, folder_name)
+    if not slides:
+        exit()
+    
+    for slide in slides:
+        try:
+            slide_id, slide_name = slide
+            file_path = os.path.join(project_path, 'anndata', f"slide_{slide_id}_{slide_name}.h5ad")
+            adata = ad.read_h5ad(file_path)
+
+            print(f"Phenotyping slide {slide_id}")
+
+            adata = preprocess(adata)
+            adata = dimension_reduction(adata)
+            adata = cluster(adata)
+            adata = embed(adata)
+            qc_plot(adata, figures_dir, slide_id)
+            
+            output_path = os.path.join(phenotyping_dir, f"slide_{slide_id}_{slide_name}_phenotyped.h5ad")
+            adata.write_h5ad(output_path)
+
+            status = 'Complete'
+        
+            update_pipeline_status(cursor, slide_id, status)
+        
+        except Exception as e:
+
+            status = 'Failed'
+
+            update_pipeline_status(cursor, slide_id, status)
+            print(f"Slide {slide_id} failed {e}!")
+
+    conn.commit()
+    conn.close()
+
+    print("Done!")
