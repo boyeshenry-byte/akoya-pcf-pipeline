@@ -90,13 +90,17 @@ Updated to `.intensity_mean` and `.intensity_max` respectively
 
 ---
 
-## Planned
-- Validate and fix Cellpose diameter based on prototype tonsil data
-- Tune Gaussian sigma for illumination correction
-- Establish formal validation workflow for segmentation QC
-- Consider pathologist review of representative segmentation overlays
-- Validate feature extraction
-- Phenotyping via Lieden clustering using Scanpy
-- Spatial analysis via Squidpy
-- PostgreSQL migration for external collaboration
-- JOSS publication
+## Phenotyping
+*Last updated: 2026-03-16*
+
+**Scope** - Since this pipeline is developed as a core lab service, cell annotation was left out for the researchers to perform. Expected cells depend on many factors outside of what the core lab anticipates knowing and varies too broadly. As such, annotation will be the researcher's responsibility
+
+**arcsinh** - A cofactor of 5 was used as industry standard instead of log normalization since intensity data is not count data
+
+**Leiden** - Leiden clustering was chosen over KMeans since it is graph-based and more suitable for high-dimensional, single-cell data. A resolution was set at 0.5. This is a default and tunable per dataset
+
+**UMAP** - Computed after clustering for the correct dependency order 
+
+**scanpy** - `flavor="igraph"`, `n_iterations=2` and `directed=False` were used in accordance with future scanpy defaults
+
+**per-slide output** - per-slide `.h5ad` output files and figures saved to `phenotyping/` subfolder. These are distinct from the original `.h5ad` files. Raw `.h5ad` values were preserved in the new processed files

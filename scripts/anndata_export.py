@@ -39,7 +39,7 @@ def get_slides(cursor, project):
     : RETURNS :
 
     res : list
-        A list of slide_id and slide_name for the project
+        A list of tuples of slide_id and slide_name for the project
     """
 
     project_filter = f"%{project}%"
