@@ -19,7 +19,7 @@ import scanpy as sc
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 DB_PATH = os.environ.get("AKOYA_DB")
 
-parser = argparse.ArgumentParser(description="Project folder name and cell diameter")
+parser = argparse.ArgumentParser(description="Project folder name")
 parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
 args = parser.parse_args()
 
