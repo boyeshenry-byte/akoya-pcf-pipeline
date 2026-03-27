@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/16/2026
-# Version: v0.1.0
+# Version: v0.1.01
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the AnnData files and preprocesses them, performs Leiden clustering, and UMAP embedding. 
 # It then plots the UMAP data based on marker and cluster. It creates a heatmap based on the clustering and save the figures.
@@ -218,13 +218,13 @@ if __name__ == "__main__":
 
             status = 'Complete'
         
-            update_pipeline_status(cursor, slide_id, status)
+            update_pipeline_status(cursor, status, slide_id)
         
         except Exception as e:
 
             status = 'Failed'
 
-            update_pipeline_status(cursor, slide_id, status)
+            update_pipeline_status(cursor, status, slide_id)
             print(f"Slide {slide_id} failed {e}!")
 
     conn.commit()
