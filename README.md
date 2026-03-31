@@ -36,6 +36,7 @@ akoya_pcf/
 ├── methods_log.md
 ├── requirements.txt
 ├── schema.sql
+├── submit_pipeline.sh
 ├── tests/
 ├── notebooks/
 │   ├── 01_metadata_extraction_testing.ipynb
@@ -45,6 +46,14 @@ akoya_pcf/
 │   ├── 05_anndata_export_testing.ipynb
 │   └── 06_spatial_analysis_testing.ipynb
 └── scripts/
+    ├── slurm/
+    │   ├── ingestion.sh
+    │   ├── preprocessing.sh
+    │   ├── segmentation.sh
+    │   ├── feature_extraction.sh
+    │   ├── anndata_export.sh
+    │   ├── phenotyping.sh
+    │   └── spatial_analysis.sh
     ├── anndata_export.py
     ├── feature_extraction.py
     ├── ingestion.py
@@ -92,6 +101,17 @@ Execute in order:
 
 8. **spatial_analysis.py** - Performs spatial graphing and neighborhood enrichment, computes co-occurrence of Leiden clusters, and calculates Ripley's statistics
    - `python scripts/spatial_analysis.py --project my_project [--n_neigh 10]`
+
+### HPC Execution (Slurm)
+For running the full pipeline on the HPC, use the master submission script:
+```bash
+bash submit_pipeline.sh --project my_project [--diameter None] [--n_neigh 10]
+```
+
+This submits all pipeline stages as dependent Slurm jobs. Each stage only runs if the previous one completes successfully. Logs are saved to `$AKOYA_ISILON/<project>/logs/`.
+
+**Note:** `init_db.py` is a one-time setup step and must be run manually before the first pipeline execution.
+
 ---
 
 ## Database schema
