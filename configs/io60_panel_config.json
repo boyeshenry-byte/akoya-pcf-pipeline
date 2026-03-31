@@ -1,0 +1,76 @@
+{
+    "immune_cell_typing": {
+        "CD3e": "T cell",
+        "CD4": "CD4+ T cell",
+        "CD8": "CD8+ T cell",
+        "CD20": "B cell",
+        "CD56": "NK cell",
+        "CD14": "Monocyte",
+        "CD68": "Macrophage",
+        "CD11c": "Dendritic cell",
+        "CD45": "Leukocyte",
+        "CD45RO": "Memory T cell",
+        "CD44": "Activated lymphocyte",
+        "HLA-DR": "Antigen presenting cell",
+        "HLA-A": "MHC I expressing cell"
+    },
+    "lymphocyte_profiling": {
+        "FOXP3": "Regulatory T cell",
+        "CD21": "Follicular B cell",
+        "CD38": "Plasma cell",
+        "Granzyme B": "Cytotoxic cell",
+        "TOX": "Exhausted T cell",
+        "TCF-1": "Stem-like T cell",
+        "CD79a": "B cell",
+        "CD39": "Regulatory/exhausted cell",
+        "CD107": "Degranulating cell",
+        "CD57": "Senescent NK/T cell"
+    },
+    "myeloid_profiling": {
+        "CD163": "M2 Macrophage",
+        "CD206": "M2 Macrophage",
+        "CD209": "Dendritic cell",
+        "CD11b": "Myeloid cell",
+        "CD66": "Neutrophil",
+        "MPO": "Neutrophil",
+        "iNOS": "M1 Macrophage"
+    },
+    "immune_activation": {
+        "PD-1": "checkpoint",
+        "PD-L1": "checkpoint",
+        "LAG3": "checkpoint",
+        "VISTA": "checkpoint",
+        "ICOS": "co-stimulatory",
+        "IFNG": "activation",
+        "IDO1": "immunosuppression"
+    },
+    "tumor_markers": {
+        "PanCK": "Tumor/epithelial cell",
+        "EpCAM": "Epithelial cell",
+        "SOX2": "Stem/squamous tumor cell",
+        "Keratin 14": "Basal epithelial cell",
+        "Keratin 5": "Basal epithelial cell",
+        "Keratin 8/18": "Luminal epithelial cell",
+        "TP63": "Basal cell",
+        "GP100": "Melanocyte/melanoma",
+        "ER": "Hormone receptor positive",
+        "Bcl-2": "Anti-apoptotic"
+    },
+    "tissue_architecture": {
+        "CD31": "Endothelial cell",
+        "SMA": "Smooth muscle/CAF",
+        "Vimentin": "Mesenchymal/CAF",
+        "CD34": "Endothelial/progenitor cell",
+        "Podoplanin": "Lymphatic endothelial cell",
+        "Collagen IV": "Basement membrane",
+        "Caveolin": "Endothelial/adipocyte",
+        "E-cadherin": "Epithelial cell",
+        "B-Catenin1": "Epithelial/Wnt signaling",
+        "Beta-actin": "structural"
+    },
+    "proliferation": {
+        "Ki67": "proliferating",
+        "PCNA": "proliferating",
+        "Histone H3 Phospho (Ser28)": "mitotic"
+    }
+}
