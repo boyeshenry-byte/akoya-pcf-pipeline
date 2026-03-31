@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/16/2026
-# Version: v0.1.01
+# Version: v0.2.0
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the AnnData files and preprocesses them, performs Leiden clustering, and UMAP embedding. 
 # It then plots the UMAP data based on marker and cluster. It creates a heatmap based on the clustering and save the figures.
@@ -15,6 +15,7 @@ import numpy as np
 import sqlite3
 import anndata as ad 
 import scanpy as sc 
+from utils import setup_logging
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 DB_PATH = os.environ.get("AKOYA_DB")
@@ -185,6 +186,10 @@ if __name__ == "__main__":
     db_path = DB_PATH
     project_path = f"{ISILON_BASE}/{folder_name}"
 
+    log_dir = os.path.join(project_path, 'logs')
+
+    logger = setup_logging(folder_name, log_dir)
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
@@ -192,9 +197,9 @@ if __name__ == "__main__":
     figures_dir = os.path.join(phenotyping_dir, 'figures')
     os.makedirs(phenotyping_dir, exist_ok=True)
     os.makedirs(figures_dir, exist_ok=True)
-    print(f"Figure directory ready: {figures_dir}")
+    logger.info(f"Figure directory ready: {figures_dir}")
 
-    print("Fetching slides")
+    logger.info("Fetching slides")
     slides = find_slides(cursor, folder_name)
     if not slides:
         exit()
@@ -205,7 +210,7 @@ if __name__ == "__main__":
             file_path = os.path.join(project_path, 'anndata', f"slide_{slide_id}_{slide_name}.h5ad")
             adata = ad.read_h5ad(file_path)
 
-            print(f"Phenotyping slide {slide_id}")
+            logger.info(f"Phenotyping slide {slide_id}")
 
             adata = preprocess(adata)
             adata = dimension_reduction(adata)
@@ -225,9 +230,9 @@ if __name__ == "__main__":
             status = 'Failed'
 
             update_pipeline_status(cursor, status, slide_id)
-            print(f"Slide {slide_id} failed {e}!")
+            logger.error(f"Slide {slide_id} failed {e}!")
 
     conn.commit()
     conn.close()
 
-    print("Done!")
+    logger.info("Done!")

@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 2/20/2026
-# Version: v0.1.02
+# Version: v0.2.0
 # Contact: boyeshenry@gmail.com
 # Description: This script computes the channel statistics for each channel of each slide.
 # It flags channels that have low signals and corrects their illumination. It then writes the 
@@ -20,7 +20,7 @@ from skimage.filters import gaussian
 from skimage import exposure
 from PIL import Image
 from ingestion import scan_for_files
-from utils import is_already_processed
+from utils import is_already_processed, setup_logging
 import xml.etree.ElementTree as ET
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
@@ -165,24 +165,29 @@ def save_composite_png(file_path, output_dir):
 if __name__ == "__main__":
     folder_name = args.project
     db_path = DB_PATH
+    project_path = f"{ISILON_BASE}/{folder_name}"
+
+    log_dir = os.path.join(project_path, 'logs')
+
+    logger = setup_logging(folder_name, log_dir)
     
-    print("Scanning for files...")
+    logger.info("Scanning for files...")
     files = scan_for_files(f"{ISILON_BASE}/{folder_name}")
-    print(f"Found {len(files)} files")
+    logger.info(f"Found {len(files)} files")
 
     for file in files:
         if is_already_processed(db_path, file, "channel_stats"):
-            print(f"Skipping {os.path.basename(file)}: already processed.")
+            logger.info(f"Skipping {os.path.basename(file)}: already processed.")
             continue
-        print(f"Preprocessing {os.path.basename(file)}...")
+        logger.info(f"Preprocessing {os.path.basename(file)}...")
         result = process_slide(file)
         for r in result:
-            print(f"  Channel {r['channel_index']} — {r['flag_message']}")
+            logger.info(f"  Channel {r['channel_index']} — {r['flag_message']}")
         write_preprocessing_results(db_path, file, result)
 
         slide_name = os.path.splitext(os.path.basename(file))[0]
         output_dir = os.path.join(os.path.dirname(file), "qc_pngs", slide_name)
         save_composite_png(file, output_dir)
-        print(f" PNGs saved to {output_dir}")
+        logger.info(f" PNGs saved to {output_dir}")
 
-    print("Done!")
+    logger.info("Done!")

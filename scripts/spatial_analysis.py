@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/26/2026
-# Version: v0.1.0
+# Version: v0.2.0
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the phenotyped AnnData files, builds a spatial graph, performs neighborhood enrichment analysis,
 # computes co-occurrence scores, runs Ripley's statistics and exports the spatial metrics.
@@ -16,6 +16,7 @@ import sqlite3
 import pandas as pd
 import anndata as ad 
 import squidpy as sq
+from utils import setup_logging
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 DB_PATH = os.environ.get("AKOYA_DB")
@@ -243,12 +244,17 @@ if __name__ == "__main__":
 
     output_dir = os.path.join(project_path, 'spatial')
     os.makedirs(output_dir, exist_ok=True)
-    print("Directory Ready")
+    
+    log_dir = os.path.join(project_path, 'logs')
+
+    logger = setup_logging(folder_name, log_dir)
+    
+    logger.info("Directories Ready")
 
     conn = sqlite3.connect(db_path, timeout=30)
     cursor = conn.cursor()
 
-    print("Fetching slides")
+    logger.info("Fetching slides")
     slides = find_slides(cursor, folder_name)
     if not slides:
         exit()
@@ -264,15 +270,15 @@ if __name__ == "__main__":
             adata.uns["cell_diameter"] = diameter
             adata.uns["co_occurrence_interval"] = np.arange(diameter, 11 * diameter, diameter)
 
-            print(f"Performing Spatial Graphing for {slide_id}")
+            logger.info(f"Performing Spatial Graphing for {slide_id}")
             adata = spatial_graphing(adata, n_neigh)
-            print("Performing Neighborhood Enrichment")
+            logger.info("Performing Neighborhood Enrichment")
             adata = neighborhood_enrichment(adata)
-            print("Computing co-occurrence")
+            logger.info("Computing co-occurrence")
             adata = compute_co_occurrence(adata)
-            print("Calculating Ripley's Statistics")
+            logger.info("Calculating Ripley's Statistics")
             adata = ripley_stats(adata, n_neigh)
-            print("Exporting data")
+            logger.info("Exporting data")
             export_metrics(adata, output_dir, slide_id, slide_name)
 
             status = "Complete"
@@ -281,14 +287,14 @@ if __name__ == "__main__":
             conn.commit()
 
         except Exception as e:
-            print(f"Slide {slide_id} failed with error: {e}")
+            logger.error(f"Slide {slide_id} failed with error: {e}")
             status = "Failed"
             try:
-             update_pipeline_status(cursor, status, slide_id)
-             conn.commit()
+                update_pipeline_status(cursor, status, slide_id)
+                conn.commit()
             except Exception as db_err:
-                print(f"DB update failed: {db_err}")
+                logger.error(f"DB update failed: {db_err}")
     
     conn.close()
 
-    print("Done!")
+    logger.info("Done!")

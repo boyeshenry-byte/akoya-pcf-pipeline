@@ -3,12 +3,14 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 2/25/2026
-# Version: v0.1.0
+# Version: v0.2.0
 # Contact: boyeshenry@gmail.com
-# Description: This script contains the shared pipeline utilities.
+# Description: This script contains the shared pipeline utilities including database helpers and logging setup.
 # =============================================================================
 
 import sqlite3
+import logging
+
 
 def is_already_processed(db_path, file_path, table):
     """
@@ -29,3 +31,25 @@ def is_already_processed(db_path, file_path, table):
     result = cursor.fetchone()[0] > 0
     conn.close()
     return result
+
+
+def setup_logging(project, log_dir):
+    logger = logging.getLogger("akoya_pcf")
+    logger.setLevel(logging.INFO)
+
+    # Create formatter
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+    # File handler
+    file_handler = logging.FileHandler(os.path.join(log_dir, f"{project}_pipeline.log"))
+    file_handler.setFormatter(formatter)
+
+    # Stream handler
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter)
+
+    # Add to logger
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+
+    return logger

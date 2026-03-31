@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/11/2026
-# Version: v0.1.0
+# Version: v0.2.0
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the extracted cell features and intensities and converts them to .h5ad AnnData format for
 # phenotyping and spatial analysis
@@ -15,6 +15,7 @@ import sqlite3
 import numpy as np 
 import pandas as pd 
 import argparse
+from utils import setup_logging
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 DB_PATH = os.environ.get("AKOYA_DB")
@@ -309,22 +310,27 @@ def validate_adata(adata):
 if __name__ == "__main__":
     folder_name = args.project
     db_path = DB_PATH
-    
+    project_path = f"{ISILON_BASE}/{folder_name}"
+
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
+    log_dir = os.path.join(project_path, 'logs')
+
+    logger = setup_logging(folder_name, log_dir)
 
     project_path = f"{ISILON_BASE}/{folder_name}"
     anndata_dir = os.path.join(project_path, 'anndata')
     os.makedirs(anndata_dir, exist_ok=True)
-    print(f"AnnData directory ready: {anndata_dir}")
+    logger.info(f"AnnData directory ready: {anndata_dir}")
 
-    print("Fetching slides")
+    logger.info("Fetching slides")
     slides = get_slides(cursor, folder_name)
     if not slides:
         exit()
 
-    print("Compiling data")
+    logger.info("Compiling data")
     
     for slide_id, slide_name in slides:
         count = check_cell_counts(cursor, slide_id)
@@ -342,10 +348,10 @@ if __name__ == "__main__":
         else:
             status = 'Failed'
             update_status(cursor, slide_id, status, None)
-            print(f"Slide {slide_id} failed!")
+            logger.error(f"Slide {slide_id} failed!")
     
     conn.commit()
     conn.close()
 
-    print("Done!")
+    logger.info("Done!")
     

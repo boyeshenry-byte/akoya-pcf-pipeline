@@ -7,7 +7,7 @@ The purpose of this pipeline is to provide spatial analysis for the Akoya PCF co
 ---
 
 ## Ingestion
-*Last updated: 2026/02/25*
+*Last updated: 2026-03-31*
 
 Scans project folders on the Isilon for .QPTIFF files and extracts metadata including slide ID, number of channels, marker names, and image dimensions.
 
@@ -18,7 +18,7 @@ Scans project folders on the Isilon for .QPTIFF files and extracts metadata incl
 ---
 
 ## Preprocessing
-*Last updated: 2026-03-11*
+*Last updated: 2026-03-31*
 
 **Channel statistics** - Min, max, mean intensity and nonzero fraction computed per channel.
 
@@ -35,7 +35,7 @@ Sigma set to 50. To be tuned based on prototype data validation.
 ---
 
 ## Segmentation
-*Last updated: 2026-03-05*
+*Last updated: 2026-03-31*
 
 **Cellpose version** - v4.0.8
 
@@ -58,7 +58,7 @@ without excessive redundant computation.
 ---
 
 ## Feature extraction
-*Last updated: 2026-03-09*
+*Last updated: 2026-03-31*
 
 **regionprops** - Used skimage's `regionprops` to extract cell morphological features and intensity values. 
 Initially, `.mean_intensity` and `.max_intensity` were used, however, those methodologies are deprecated. 
@@ -73,7 +73,7 @@ Updated to `.intensity_mean` and `.intensity_max` respectively
 ---
 
 ## AnnData Export
-*Last updated: 2026-03-13*
+*Last updated: 2026-03-31*
 
 **AnnData Export** - Created separately from other pipelines to ensure usability across analyses.
 
@@ -91,7 +91,7 @@ Updated to `.intensity_mean` and `.intensity_max` respectively
 ---
 
 ## Phenotyping
-*Last updated: 2026-03-16*
+*Last updated: 2026-03-31*
 
 **Scope** - Since this pipeline is developed as a core lab service, cell annotation was left out for the researchers to perform. Expected cells depend on many factors outside of what the core lab anticipates knowing and varies too broadly. As such, annotation will be the researcher's responsibility
 
@@ -108,7 +108,7 @@ Updated to `.intensity_mean` and `.intensity_max` respectively
 ---
 
 ## Spatial Analysis
-*Last updated: 2026-03-27*
+*Last updated: 2026-03-31*
 
 **Scope** - Spatial analysis is performed on phenotyped AnnData files using Squidpy. Analysis includes spatial graph construction, neighborhood enrichment, co-occurrence scoring, and Ripley's statistics.
 

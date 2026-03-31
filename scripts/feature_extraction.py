@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/5/2026
-# Version: v0.1.01
+# Version: v0.2.0
 # Contact: boyeshenry@gmail.com
 # Description: This script takes in mask files created by segmenting .tiff files from the Akoya PCF. It extracts the cell features
 # and intensities then writes them to a database for spatial analysis.
@@ -18,7 +18,7 @@ import xml.etree.ElementTree as ET
 from skimage.measure import regionprops
 from datetime import datetime
 from ingestion import scan_for_files
-from utils import is_already_processed
+from utils import is_already_processed, setup_logging
 
 
 
@@ -207,23 +207,28 @@ def write_intensity(db_path, file_path, intensity_features):
 if __name__ == "__main__":
     folder_name = args.project
     db_path = DB_PATH
+    project_path = f"{ISILON_BASE}/{folder_name}"
+
+    log_dir = os.path.join(project_path, 'logs')
+
+    logger = setup_logging(folder_name, log_dir)
     
-    print("Scanning for files...")
+    logger.info("Scanning for files...")
     files = scan_for_files(f"{ISILON_BASE}/{folder_name}")
-    print(f"Found {len(files)} files")
+    logger.info(f"Found {len(files)} files")
 
     for file in files:
         if is_already_processed(db_path, file, 'cell_features'):
-            print(f"Skipping {os.path.basename(file)}: already processed.")
+            logger.info(f"Skipping {os.path.basename(file)}: already processed.")
             continue
         mask_dir = os.path.join(os.path.dirname(file), 'masks')
         file_name = os.path.splitext(os.path.basename(file))[0] + "_mask.tiff"
         mask_path = os.path.join(mask_dir, file_name)
         mask = tifffile.imread(f"{mask_path}")
         
-        print(f"Extracting {os.path.basename(file)}...")
+        logger.info(f"Extracting {os.path.basename(file)}...")
         write_morphology(db_path, file, extract_morphology(mask))
         write_intensity(db_path, file, extract_intensity(mask, file))
         
 
-    print("Done!")
+    logger.info("Done!")
