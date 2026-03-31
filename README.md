@@ -128,6 +128,13 @@ The pipeline uses a SQLite database with the following tables:
 
 ---
 
+## Documentation
+
+- [methods_log.md](methods_log.md) — Design decisions and version history for each pipeline stage
+- [data_dictionary.md](data_dictionary.md) — Complete reference for all database tables, AnnData object structure, and output file formats
+
+---
+
 ## Planned
 - Validate and fix Cellpose diameter based on prototype tonsil data
 - Tune Gaussian sigma for illumination correction
