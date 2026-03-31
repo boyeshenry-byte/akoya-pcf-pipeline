@@ -104,3 +104,22 @@ Updated to `.intensity_mean` and `.intensity_max` respectively
 **scanpy** - `flavor="igraph"`, `n_iterations=2` and `directed=False` were used in accordance with future scanpy defaults
 
 **per-slide output** - per-slide `.h5ad` output files and figures saved to `phenotyping/` subfolder. These are distinct from the original `.h5ad` files. Raw `.h5ad` values were preserved in the new processed files
+
+---
+
+## Spatial Analysis
+*Last updated: 2026-03-27*
+
+**Scope** - Spatial analysis is performed on phenotyped AnnData files using Squidpy. Analysis includes spatial graph construction, neighborhood enrichment, co-occurrence scoring, and Ripley's statistics.
+
+**Spatial graph** - KNN graph constructed using `sq.gr.spatial_neighbors` with `coord_type='generic'` since cells are biologically distributed rather than arranged in a regular grid. Default `n_neighs=10`, tunable via `--n_neigh` argument.
+
+**Neighborhood enrichment** - Permutation-based enrichment analysis (`n_perms=1000`) computed between Leiden clusters. Results stored as z-scores in an n×n matrix where n is the number of clusters.
+
+**Co-occurrence** - Distance-resolved co-occurrence scores computed across interval bins derived from cell diameter (1–10x diameter, step=1x diameter). Cell diameter sourced from `segmentation_results.diameter_used`. Scores stored in long format with columns `cluster_1`, `interval`, and `score`.
+
+**Ripley's statistics** - All three modes (F, G, L) computed per slide with `n_simulations=1000`. F and G describe nearest-neighbor distance distributions; L is a normalized measure of overall clustering.
+
+**Output structure** - Results exported to `spatial/` subfolder with subdirectories: `anndata/` (final .h5ad), `neighborhood_enrichment/` (zscore CSVs), `ripley/` (stat and pvalue CSVs per mode), and `co_occurrence/` (melted long-format CSV).
+
+**Known issues** - `diameter_used` was not being written to `segmentation_results` during prototype runs due to Cellpose returning `None` when diameter is not explicitly set. Values manually set to 30 for prototype validation. Fix implemented in `segmentation.py` but prototype slides have not been re-segmented.
