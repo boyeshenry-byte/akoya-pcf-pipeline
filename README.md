@@ -27,6 +27,8 @@ cd akoya_pcf
 pip install -r requirements.txt
 ```
 
+**NOTE:** PyTorch (`torch`) should be installed separately folloing [PyTorch's official instructions](https://pytorch.org/get-started/locally/) to match your hardware's CUDA version.
+
 ---
 
 ## Project structure
