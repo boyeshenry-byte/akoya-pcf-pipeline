@@ -147,6 +147,7 @@ Inherits all slots from above, plus:
 | Slot | Content |
 |------|---------|
 | `obs['leiden']` | Leiden cluster label per cell |
+| `obs['cell_type_suggested']` | Suggested cell type based on top expressed marker mapped to panel config |
 | `obsm['X_pca']` | PCA embedding |
 | `obsm['X_umap']` | UMAP embedding |
 | `uns['leiden']` | Leiden clustering parameters |
