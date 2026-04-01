@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/16/2026
-# Version: v0.2.0
+# Version: v0.3.0
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the AnnData files and preprocesses them, performs Leiden clustering, and UMAP embedding. 
 # It then plots the UMAP data based on marker and cluster. It creates a heatmap based on the clustering and save the figures.
@@ -13,6 +13,7 @@ import os
 import argparse
 import numpy as np 
 import sqlite3
+import json
 import anndata as ad 
 import scanpy as sc 
 from utils import setup_logging
@@ -22,6 +23,8 @@ DB_PATH = os.environ.get("AKOYA_DB")
 
 parser = argparse.ArgumentParser(description="Project folder name")
 parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+parser.add_argument("pannel_config", default="configs/io60_panel_config.json", type=str, 
+help="Path to panel config JSON for cluster annotation")
 args = parser.parse_args()
 
 def find_slides(cursor, project):
@@ -121,6 +124,47 @@ def cluster(adata):
 
     return adata
 
+def annotate_clusters(adata, panel_config):
+    """
+    This function suggests annotations for the Leiden clusters based on the provided panel configuration
+
+    : ARGS :
+
+    adata : AnnData object
+        An AnnData object that has had Leiden clustering applied
+
+    panel_config : .JSON file
+        A .JSON file provided for annotation. Default is the IO60 panel
+
+    : RETURNS :
+
+    adata : AnnData object
+        An AnnData object with suggested annotations applied to the clusters
+    """
+
+    with open(panel_config, 'r') as f:
+        panel = json.load(f)
+
+    marker_lookup = {}
+
+    for category, markers in panel.items():
+        for marker, cell_type in markers.items():
+            marker_lookup[marker] = cell_type
+
+    agg = sc.get.aggregate(adata, by='leiden', func='mean')
+
+    annotations = {}
+
+    for cluster, expression in zip(agg.obs_names, agg.X):
+        top_marker = agg.var_names[np.argmax(expression)]
+        cell_type = marker_lookup.get(top_marker, "unknown")
+        annotations[cluster] = cell_type
+
+    adata.obs['cell_type_suggested'] = adata.obs['leiden'].map(annotations)
+
+    return adata
+
+
 def embed(adata):
     """
     This function embeds the UMAP data in the AnnData object
@@ -128,7 +172,7 @@ def embed(adata):
     : ARGS :
 
     adata : AnnData object
-        The AnnData object that has neighbor_graphing applied
+        The AnnData object that has neighbor_graphing and annotations applied 
 
     : RETURNS :
 
@@ -157,6 +201,8 @@ def qc_plot(adata, output_dir, slide_id):
     sc.settings.figdir = output_dir
 
     sc.pl.umap(adata, color='leiden', save=f'slide{slide_id}_leiden.png', show=False)
+
+    sc.pl.umap(adata, color='cell_type_suggested', save=f'_slide{slide_id}_cell_type_suggested.png', show=False)
 
     sc.pl.umap(adata, color=adata.var_names.tolist(), save=f'_slide{slide_id}_markers.png', show=False)
 
@@ -215,6 +261,7 @@ if __name__ == "__main__":
             adata = preprocess(adata)
             adata = dimension_reduction(adata)
             adata = cluster(adata)
+            adata = annotate_clusters(adata)
             adata = embed(adata)
             qc_plot(adata, figures_dir, slide_id)
             

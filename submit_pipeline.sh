@@ -2,6 +2,7 @@
 
 DIAMETER=None
 N_NEIGH=10
+PANEL_CONFIG="configs/io60_panel_config.json"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -15,6 +16,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --n_neigh)
             N_NEIGH="$2"
+            shift 2
+            ;;
+        --panel_config)
+            PANEL_CONFIG="$2"
             shift 2
             ;;
     esac
@@ -51,7 +56,7 @@ JOB5=$(sbatch --parsable \
 JOB6=$(sbatch --parsable \
     --output=$AKOYA_ISILON/$PROJECT/logs/phenotyping_%j.log \
     --error=$AKOYA_ISILON/$PROJECT/logs/phenotyping_%j.err \
-    --dependency=afterok:$JOB5 scripts/slurm/phenotyping.sh $PROJECT)
+    --dependency=afterok:$JOB5 scripts/slurm/phenotyping.sh $PROJECT $PANEL_CONFIG)
 JOB7=$(sbatch --parsable \
     --output=$AKOYA_ISILON/$PROJECT/logs/spatial_analysis_%j.log \
     --error=$AKOYA_ISILON/$PROJECT/logs/spatial_analysis_%j.err \

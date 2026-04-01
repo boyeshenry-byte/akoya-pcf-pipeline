@@ -5,4 +5,4 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 
-/opt/python/3.11.3/bin/python scripts/phenotyping.py --project $1
+/opt/python/3.11.3/bin/python scripts/phenotyping.py --project $1 --panel_config $2
