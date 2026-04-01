@@ -142,7 +142,6 @@ The pipeline uses a SQLite database with the following tables:
 - Consider pathologist review of representative segmentation overlays
 - Validate feature extraction
 - JOSS publication
-- Panel config file support for marker-to-cell-type annotation in phenotyping
 
 ---
 
