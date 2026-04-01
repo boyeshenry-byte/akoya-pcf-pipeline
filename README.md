@@ -96,7 +96,7 @@ Execute in order:
 6. **anndata_export.py** - Converts the extracted features and metadata into an AnnData .h5ad file for phenotyping and spatial analysis.
    - `python scripts/anndata_export.py --project my_project`
 
-7. **phenotyping.py** - Performs PCA, Leiden clustering, and UMAP embedding for AnnData files
+7. **phenotyping.py** - Performs PCA, Leiden clustering, cell annotation, and UMAP embedding for AnnData files
    - `python scripts/phenotyping.py --project my_project`
 
 8. **spatial_analysis.py** - Performs spatial graphing and neighborhood enrichment, computes co-occurrence of Leiden clusters, and calculates Ripley's statistics

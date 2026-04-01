@@ -91,9 +91,9 @@ Updated to `.intensity_mean` and `.intensity_max` respectively
 ---
 
 ## Phenotyping
-*Last updated: 2026-03-31*
+*Last updated: 2026-04-01*
 
-**Scope** - Since this pipeline is developed as a core lab service, cell annotation was left out for the researchers to perform. Expected cells depend on many factors outside of what the core lab anticipates knowing and varies too broadly. As such, annotation will be the researcher's responsibility
+**Scope** - Since this pipeline is developed as a core lab service for use with the IO60 panel. Cell annotation using the IO60 panel as a defult is used to suggest cell types. Expected cells depend on many factors outside of what the core lab anticipates knowing and varies too broadly. As such, annotation will be the researcher's responsibility and suggested cell types should be verified with what the researcher expects to see
 
 **arcsinh** - A cofactor of 5 was used as industry standard instead of log normalization since intensity data is not count data
 
