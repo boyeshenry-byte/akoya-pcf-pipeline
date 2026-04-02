@@ -191,6 +191,13 @@ Long-format co-occurrence scores. Columns: `interval`, `cluster_1`, `score`. Eac
 
 Final AnnData object with all spatial analysis results embedded in `uns`. Inherits all phenotyping slots plus Squidpy outputs:
 
+### `spatial_qc/`
+QC visualizations generated per slide during spatial analysis.
+
+- `slide_<id>_zscore.png` — neighborhood enrichment z-score heatmap (clusters × clusters)
+- `slide_<id>_ripleys_L_curve.png` — Ripley's L statistic curves per cluster across distance bins
+- `slide_<id>_co_occ.png` — mean co-occurrence score heatmap averaged across distance intervals (clusters × clusters)
+
 | Key | Content |
 |-----|---------|
 | `uns['spatial_neighbors']` | Spatial KNN graph |
