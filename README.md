@@ -101,7 +101,7 @@ Execute in order:
 7. **phenotyping.py** - Performs PCA, Leiden clustering, cell annotation, and UMAP embedding for AnnData files
    - `python scripts/phenotyping.py --project my_project`
 
-8. **spatial_analysis.py** - Performs spatial graphing and neighborhood enrichment, computes co-occurrence of Leiden clusters, and calculates Ripley's statistics
+8. **spatial_analysis.py** - Performs spatial graphing and neighborhood enrichment, computes co-occurrence of Leiden clusters, and calculates Ripley's statistics. It then generates and saves QC plots
    - `python scripts/spatial_analysis.py --project my_project [--n_neigh 10]`
 
 ### HPC Execution (Slurm)

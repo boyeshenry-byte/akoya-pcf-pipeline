@@ -49,9 +49,9 @@ conventions in image processing.
 **Tile overlap** - 256px (2^8) chosen as sufficient to capture full cells at tile boundaries 
 without excessive redundant computation.
 
-**Diameter** - Diameter= 0 (autodetect) was initially selected but changed to `None` due to Cellpose API changes
+**Diameter** - Diameter= 0 (autodetect) was initially selected but changed to `None` due to Cellpose API changes.
 
-**Overflow Fix** - updated the cell count and offset to fix overflow bug effecting cell counts. Initially np.int64 was tried. However, it was discovered that accumulating offset values were causing artificial count inflations
+**Overflow Fix** - updated the cell count and offset to fix overflow bug effecting cell counts. Initially np.int64 was tried. However, it was discovered that accumulating offset values were causing artificial count inflations.
 
 **Tile Boundary Fix** - Updated tile boundaries to use min() on row/col stop values.
 
@@ -62,9 +62,9 @@ without excessive redundant computation.
 
 **regionprops** - Used skimage's `regionprops` to extract cell morphological features and intensity values. 
 Initially, `.mean_intensity` and `.max_intensity` were used, however, those methodologies are deprecated. 
-Updated to `.intensity_mean` and `.intensity_max` respectively
+Updated to `.intensity_mean` and `.intensity_max` respectively.
 
-**storage decisions** - Per-cell storage used with intended spatial analysis later in pipeline. Aggregating to slide level now would remove the option for downstream phenotyping. Long format was decided on for adaptability of cell features. Long format is used for intensities due to their inherently multi-valued nature. The features were separated as standard normalization and to avoid repeating features for every data channel
+**storage decisions** - Per-cell storage used with intended spatial analysis later in pipeline. Aggregating to slide level now would remove the option for downstream phenotyping. Long format was decided on for adaptability of cell features. Long format is used for intensities due to their inherently multi-valued nature. The features were separated as standard normalization and to avoid repeating features for every data channel.
 
 **cell count discrepancy** - Upon analysis there is a roughly 10 to 15% discrepancy between segmentation and feature extraction counts. This is consistent across all 5 prototyping slides and is likely fragments or artifacts from the tiling process, rather than actual counts. Considering this is replicated across all five slides it is believed to be a filtering effect rather than a random error. 
 
@@ -78,11 +78,11 @@ Updated to `.intensity_mean` and `.intensity_max` respectively
 **AnnData Export** - Created separately from other pipelines to ensure usability across analyses.
 
 **AnnData Design** - Considering the usability for projects, one file per slide was chosen instead of one file per project. The .h5ad file was mapped to the following:
-* X - mean_intensity from cell_intensity
-* layers['max_intensity'] - max_intensity from cell_intensity
-* obs - cell_features (area, centroid_x and _y, eccentricity, perimeter, and solidity) plus slide_id and slide_name joined from slides
-* var - channel_stats (channel_name as index, min_intensity, max_intensity, mean_intensity, nonzero_fraction, flagged, and flag_message)
-* obsm['spatial'] - centroid_x and _y from cell_features stacked as a numpy array following Squidpy's spatial coordinate system
+* X - mean_intensity from cell_intensity.
+* layers['max_intensity'] - max_intensity from cell_intensity.
+* obs - cell_features (area, centroid_x and _y, eccentricity, perimeter, and solidity) plus slide_id and slide_name joined from slides.
+* var - channel_stats (channel_name as index, min_intensity, max_intensity, mean_intensity, nonzero_fraction, flagged, and flag_message).
+* obsm['spatial'] - centroid_x and _y from cell_features stacked as a numpy array following Squidpy's spatial coordinate system.
 
 **Cell count discrepancy check** - Considering the discrepancy between segmentation_results and cell_features's cell counts a check was added to flag if there is a more than 20% difference between the two. Roughly 15% discrepancy is expected from tiling artifacts and as such, 20% was decided on to leave space for variance. For the prototyping run, 10-15% variation was observed which is in the expected range. 
 
@@ -93,22 +93,22 @@ Updated to `.intensity_mean` and `.intensity_max` respectively
 ## Phenotyping
 *Last updated: 2026-04-01*
 
-**Scope** - Since this pipeline is developed as a core lab service for use with the IO60 panel. Cell annotation using the IO60 panel as a defult is used to suggest cell types. Expected cells depend on many factors outside of what the core lab anticipates knowing and varies too broadly. As such, annotation will be the researcher's responsibility and suggested cell types should be verified with what the researcher expects to see
+**Scope** - Since this pipeline is developed as a core lab service for use with the IO60 panel. Cell annotation using the IO60 panel as a defult is used to suggest cell types. Expected cells depend on many factors outside of what the core lab anticipates knowing and varies too broadly. As such, annotation will be the researcher's responsibility and suggested cell types should be verified with what the researcher expects to see.
 
-**arcsinh** - A cofactor of 5 was used as industry standard instead of log normalization since intensity data is not count data
+**arcsinh** - A cofactor of 5 was used as industry standard instead of log normalization since intensity data is not count data.
 
-**Leiden** - Leiden clustering was chosen over KMeans since it is graph-based and more suitable for high-dimensional, single-cell data. A resolution was set at 0.5. This is a default and tunable per dataset
+**Leiden** - Leiden clustering was chosen over KMeans since it is graph-based and more suitable for high-dimensional, single-cell data. A resolution was set at 0.5. This is a default and tunable per dataset.
 
-**UMAP** - Computed after clustering for the correct dependency order 
+**UMAP** - Computed after clustering for the correct dependency order.
 
-**scanpy** - `flavor="igraph"`, `n_iterations=2` and `directed=False` were used in accordance with future scanpy defaults
+**scanpy** - `flavor="igraph"`, `n_iterations=2` and `directed=False` were used in accordance with future scanpy defaults.
 
-**per-slide output** - per-slide `.h5ad` output files and figures saved to `phenotyping/` subfolder. These are distinct from the original `.h5ad` files. Raw `.h5ad` values were preserved in the new processed files
+**per-slide output** - per-slide `.h5ad` output files and figures saved to `phenotyping/` subfolder. These are distinct from the original `.h5ad` files. Raw `.h5ad` values were preserved in the new processed files.
 
 ---
 
 ## Spatial Analysis
-*Last updated: 2026-03-31*
+*Last updated: 2026-04-02*
 
 **Scope** - Spatial analysis is performed on phenotyped AnnData files using Squidpy. Analysis includes spatial graph construction, neighborhood enrichment, co-occurrence scoring, and Ripley's statistics.
 
@@ -121,5 +121,7 @@ Updated to `.intensity_mean` and `.intensity_max` respectively
 **Ripley's statistics** - All three modes (F, G, L) computed per slide with `n_simulations=1000`. F and G describe nearest-neighbor distance distributions; L is a normalized measure of overall clustering.
 
 **Output structure** - Results exported to `spatial/` subfolder with subdirectories: `anndata/` (final .h5ad), `neighborhood_enrichment/` (zscore CSVs), `ripley/` (stat and pvalue CSVs per mode), and `co_occurrence/` (melted long-format CSV).
+
+**QC plotting** - QC plots are saved to `spatial/` in the `spatial_qc/` subdirectory.
 
 **Known issues** - `diameter_used` was not being written to `segmentation_results` during prototype runs due to Cellpose returning `None` when diameter is not explicitly set. Values manually set to 30 for prototype validation. Fix implemented in `segmentation.py` but prototype slides have not been re-segmented.
