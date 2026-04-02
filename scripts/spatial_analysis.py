@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/26/2026
-# Version: v0.2.0
+# Version: v0.3.0
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the phenotyped AnnData files, builds a spatial graph, performs neighborhood enrichment analysis,
 # computes co-occurrence scores, runs Ripley's statistics and exports the spatial metrics.
@@ -16,6 +16,8 @@ import sqlite3
 import pandas as pd
 import anndata as ad 
 import squidpy as sq
+import seaborn as sns
+import matplotlib.pyplot as plt
 from utils import setup_logging
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
@@ -216,6 +218,43 @@ def export_metrics(adata, output_dir, slide_id, slide_name):
 
     return
 
+def plot_spatial_qc(adata, slide_id, spatial_qc_dir):
+    """
+    This function generates QC plots for the spatial analysis
+
+    : ARGS : 
+
+    adata : AnnData object
+        An AnnData object with spatial analysis features
+
+    slide_id : int
+        The slide id in the database
+    
+    spatial_qc_dir : str
+        The output dir for the saved plots
+    """
+    leiden_labels = adata.obs['leiden'].unique()
+
+    plt.figure()
+    sns.heatmap(adata.uns["leiden_nhood_enrichment"]["zscore"], cmap="coolwarm", cbar=True, xticklabels=leiden_labels, 
+    yticklabels=leiden_labels)
+    plt.title(f"Slide {slide_id} zscore")
+    plt.savefig(os.path.join(spatial_qc_dir, f"slide_{slide_id}_zscore.png"))
+    plt.close()
+
+    plt.figure()
+    sns.lineplot(adata.uns["leiden_ripley_L"], x='bins', y='stats', hue='leiden')
+    plt.title(f"Slide {slide_id} Ripley's L Curve")
+    plt.savefig(os.path.join(spatial_qc_dir, f"slide_{slide_id}_ripleys_L_curve.png"))
+    plt.close()
+
+    plt.figure()
+    sns.heatmap(np.mean(adata.uns["leiden_co_occurrence"]["occ"], axis=2), cmap="viridis", cbar=True, xticklabels=leiden_labels,
+    yticklabels=leiden_labels)
+    plt.title(f"Slide {slide_id} co occurrence")
+    plt.savefig(os.path.join(spatial_qc_dir, f"slide_{slide_id}_co_occ.png"))
+    plt.close()
+
 def update_pipeline_status(cursor, status, slide_id):
     """
     This function updates the pipelines status
@@ -244,6 +283,8 @@ if __name__ == "__main__":
 
     output_dir = os.path.join(project_path, 'spatial')
     os.makedirs(output_dir, exist_ok=True)
+    spatial_qc_dir = os.path.join(output_dir, "spatial_qc")
+    os.makedirs(spatial_qc_dir, exist_ok=True)
     
     log_dir = os.path.join(project_path, 'logs')
 
@@ -280,6 +321,9 @@ if __name__ == "__main__":
             adata = ripley_stats(adata, n_neigh)
             logger.info("Exporting data")
             export_metrics(adata, output_dir, slide_id, slide_name)
+            logger.info("Saving QC plots")
+            plot_spatial_qc(adata, slide_id, spatial_qc_dir)
+            
 
             status = "Complete"
 
