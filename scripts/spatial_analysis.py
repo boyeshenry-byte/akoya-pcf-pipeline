@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/26/2026
-# Version: v0.3.0
+# Version: v0.3.01
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the phenotyped AnnData files, builds a spatial graph, performs neighborhood enrichment analysis,
 # computes co-occurrence scores, runs Ripley's statistics and exports the spatial metrics.
