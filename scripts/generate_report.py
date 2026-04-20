@@ -1,0 +1,338 @@
+# =============================================================================
+# generate_report.py
+# Author: Henry Boyes
+# Institution: Cleveland Clinic
+# Date: 4/20/2026
+# Version: v0.1.0
+# Contact: boyeshenry@gmail.com
+# Description: This script final AnnData files and output CSVs and generates visualizations for them for easy analysis.
+# =============================================================================
+
+import pandas as pd
+import numpy as np
+import anndata as ad
+import os
+import argparse
+import plotly.express as px
+
+ISILON_BASE = os.environ.get("AKOYA_ISILON")
+
+parser = argparse.ArgumentParser(description="Project folder name")
+parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+args = parser.parse_args()
+
+def find_slides(spatial_dir):
+    """
+    This function finds the completed slides based on the available .h5ad files
+
+    : ARGS :
+
+    spatial_dir : str
+        The directory the AnnData files are saved in
+
+    
+    : RETURNS :
+
+    slide_list : list
+        A list of tuples containing the slide_id and slide_name for each slide
+    """    
+
+    slide_list = []
+
+    slides = os.listdir(os.path.join(spatial_dir, "anndata"))
+
+    for slide in slides:
+        slide_id, remainder = slide.split('_', 1)
+        slide_name = remainder.replace('_final.h5ad', '')
+        slide_list.append((slide_id, slide_name))
+
+    return slide_list
+
+# Load data
+def load_spatial_csvs(spatial_dir, slide_id, slide_name):
+    """
+    This funciton loads the CSVs for visualization
+
+    : ARGS :
+
+    spatial_dir : str
+        The directory the CSVs are located in
+
+    slide_id : int
+        The slide id number
+    
+    slide_name : str
+        The slide name
+
+    
+    : RETURN :
+
+    data : dict
+        A dictionary of the CSVs
+    """
+    
+    data = {}
+
+    # Load nhood CSVs
+    nhood_zscore = pd.read_csv(os.path.join(spatial_dir, 'neighborhood_enrichment', f"{slide_id}_{slide_name}_zscore.csv"))
+    nhood_pvals = pd.read_csv(os.path.join(spatial_dir, "neighborhood_enrichment", f"{slide_id}_{slide_name}_pvalue.csv"))
+
+    data["nhood_zscore"] = nhood_zscore
+    data["nhood_pvals"] = nhood_pvals
+
+    # Load Ripley's CSVs
+    modes = ["F", "G", "L"]
+
+    for mode in modes:
+        data[f"ripley_{mode}"] = pd.read_csv(os.path.join(spatial_dir, "ripley", f"{slide_id}_{slide_name}_mode_{mode}.csv"))
+        data[f"ripley_{mode}_pvals"] = pd.read_csv(os.path.join(spatial_dir, "ripley", f"{slide_id}_{slide_name}_mode_{mode}_pvalues.csv"))
+    
+    # Load co-occurrence CSVs
+    co_occ = pd.read_csv(os.path.join(spatial_dir, 'co_occurrence', f"{slide_id}_{slide_name}_co_occ.csv"), index_col=0)
+
+    data["co_occ"] = co_occ
+
+    return data
+
+
+def load_adata(spatial_dir, slide_id, slide_name):
+    """
+    This function loads the .h5ad files
+
+    : ARGS :
+
+    spatial_dir : str
+        The directory the CSVs are located in
+
+    slide_id : int
+        The slide id number
+    
+    slide_name : str
+        The slide name
+
+    
+    : RETURN :
+
+    adata: AnnData object
+        An AnnData object
+    """
+    adata = ad.read_h5ad(os.path.join(spatial_dir, "anndata", f"{slide_id}_{slide_name}_final.h5ad"))
+
+    return adata
+
+def generate_umap_clusters(adata):
+    """
+    This function generates per slide UMAP clusters
+
+    : ARGS :
+
+    adata : AnnData object
+        An AnnData object with UMAP embedded
+
+    : RETURNS :
+
+    fig : scatter plot
+        A plotly express scatter plot of UMAP colored by leiden
+    """
+
+    fig = []
+
+    for i, a in enumerate(adata):
+        fig.append(px.scatter(x=a.obsm['X_umap'][:,0], y=a.obsm['X_umap'][:,1], color=a.obs['leiden'], title=f"Slide {i} UMAP"))
+
+    return fig
+
+def generate_nhood_heatmap(nhood_zscore):
+    """
+    This function generates a heatmap of the neighborhood zscores
+
+    : ARGS :
+
+    nhood_zscores : matrix
+        An n-by-n matrix of z scores
+
+    : RETURNS :
+
+    fig : heatmap
+        A plotly heatmap of neighborhood z scores
+    """
+
+    avg_z = np.mean([df.values for df in nhood_zscore], axis=0)
+
+    fig = px.imshow(avg_z)
+
+    return fig
+
+def generate_co_occ_heatmap(co_occ):
+    """
+    This function generates a heatmap of the co-occurrence values
+
+    : ARGS :
+
+    co_occ : df
+        A DataFrame containing co-occurrence values
+
+
+    : RETURNS :
+
+    fig : heatmap
+        A plotly heatmap of co-occurrence values
+    """
+
+    avg_occ = np.mean([df.pivot_table(index=df.index, columns='cluster_1', values='score', aggfunc='mean')\
+        .values for df in co_occ], axis=0)
+
+    fig = px.imshow(avg_occ)
+
+    return fig
+
+def generate_ripley_curves(ripley_f, ripley_g, ripley_l):
+    """
+    This function generates the Ripley's statistics curves for each mode
+
+    : ARGS :
+
+    ripley_f : DataFrame
+        A DataFrame containing Ripley's statistics
+
+    ripley_g : DataFrame
+        A DataFrame containing Ripley's statistics
+
+    ripley_l : DataFrame
+        A DataFrame containing Ripley's statistics
+
+    
+    : RETURNS :
+
+    plot_f : lineplot
+        A lineplot of Ripley's statistics
+
+    plot_g : lineplot
+        A lineplot of Ripley's statistics
+
+    plot_l : lineplot
+        A lineplot of Ripley's statistics
+    """
+
+    avg_f = pd.concat(ripley_f).groupby(['bins', 'leiden'])['stats'].mean().reset_index()
+    avg_g = pd.concat(ripley_g).groupby(['bins', 'leiden'])['stats'].mean().reset_index()
+    avg_l = pd.concat(ripley_l).groupby(['bins', 'leiden'])['stats'].mean().reset_index()
+
+
+    plot_f = px.line(avg_f, x='bins', y='stats', color='leiden', title="Ripley's F")
+
+    plot_g = px.line(avg_g, x='bins', y='stats', color='leiden', title="Ripley's G")
+
+    plot_l = px.line(avg_l, x='bins', y='stats', color='leiden', title="Ripley's L")
+
+    return plot_f, plot_g, plot_l
+
+def generate_report(umap, zscores, co_occ, f, g, l):
+    """
+    This function generates an .html report of all plots generated in the script
+
+    : ARGS :
+
+    umap : fig
+        A plotly cluster map
+
+    zscores : fig
+        A plotly heatmap
+
+    co_occ : fig
+        A plotly heatmap
+
+    f : fig
+        A plotly linechart
+
+    g : fig
+        A plotly linechart
+
+    l : fig
+        A plotly linechart
+
+    : RETURNS :
+
+    report : str
+        An html string 
+    """
+
+    report = ''.join([i.to_html(full_html=False) for i in umap]) + zscores.to_html(full_html=False) + co_occ.to_html(full_html=False)\
+         + f.to_html(full_html=False) + g.to_html(full_html=False) + l.to_html(full_html=False)
+
+    return report
+
+
+if __name__ == "__main__":
+    folder_name = args.project
+    project_path = f"{ISILON_BASE}/{folder_name}"
+
+    spatial_dir = os.path.join(project_path, 'spatial')
+
+    slides = find_slides(spatial_dir)
+    if not slides:
+        exit()
+    
+    project_data = {
+                    'adata': [],
+                    'nhood_zscore': [],
+                    'nhood_pvals': [],
+                    'co_occ': [],
+                    'ripley_F': [],
+                    'ripley_G': [],
+                    'ripley_L': [],
+                    'ripley_F_pvals': [],
+                    'ripley_G_pvals': [],
+                    'ripley_L_pvals': []
+                }
+
+    for slide in slides:
+        try:
+            slide_id, slide_name = slide
+
+            csvs = load_spatial_csvs(spatial_dir, slide_id, slide_name)
+            adata = load_adata(spatial_dir, slide_id, slide_name)
+
+            
+
+            project_data['adata'].append(adata)
+            project_data['nhood_zscore'].append(csvs['nhood_zscore'])
+            project_data['nhood_pvals'].append(csvs['nhood_pvals'])
+            project_data['co_occ'].append(csvs['co_occ'])
+            project_data['ripley_F'].append(csvs['ripley_F'])
+            project_data['ripley_G'].append(csvs['ripley_G'])
+            project_data['ripley_L'].append(csvs['ripley_L'])
+            project_data['ripley_F_pvals'].append(csvs['ripley_F_pvals'])
+            project_data['ripley_G_pvals'].append(csvs['ripley_G_pvals'])
+            project_data['ripley_L_pvals'].append(csvs['ripley_L_pvals'])
+
+        except Exception as e:
+            print(e)
+
+    try:
+        umap = generate_umap_clusters(project_data['adata'])
+        zscores = generate_nhood_heatmap(project_data['nhood_zscore'])
+        co_occ = generate_co_occ_heatmap(project_data['co_occ'])
+        f, g, l = generate_ripley_curves(project_data['ripley_F'], project_data['ripley_G'], project_data['ripley_L'])
+
+    except Exception as e:
+        print(e)
+
+    try:
+        report = generate_report(umap, zscores, co_occ, f, g, l)
+
+        html = f"""
+        <html>
+        <head><title>{folder_name} Report</title></head>
+        <body>
+        {report}
+        </body>
+        </html>
+        """
+
+        output_path = os.path.join(project_path, f"{folder_name}_report.html")
+        with open(output_path, 'w') as r:
+            r.write(html)
+
+    except Exception as e:
+        print(e)
