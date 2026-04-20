@@ -61,6 +61,10 @@ JOB7=$(sbatch --parsable \
     --output=$AKOYA_ISILON/$PROJECT/logs/spatial_analysis_%j.log \
     --error=$AKOYA_ISILON/$PROJECT/logs/spatial_analysis_%j.err \
     --dependency=afterok:$JOB6 scripts/slurm/spatial_analysis.sh $PROJECT $N_NEIGH)
+JOB8=$(sbatch --parsable \
+    --output=$AKOYA_ISILON/$PROJECT/logs/generate_report_%j.log \
+    --error=$AKOYA_ISILON/$PROJECT/logs/generate_report_%j.err \
+    --dependency=afterok:$JOB7 scripts/slurm/generate_report.sh $PROJECT)
 
 echo "Pipeline submitted for project: $PROJECT"
-echo "Job IDs: $JOB1 $JOB2 $JOB3 $JOB4 $JOB5 $JOB6 $JOB7"
+echo "Job IDs: $JOB1 $JOB2 $JOB3 $JOB4 $JOB5 $JOB6 $JOB7 $JOB8"
