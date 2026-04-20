@@ -125,3 +125,14 @@ Updated to `.intensity_mean` and `.intensity_max` respectively.
 **QC plotting** - QC plots are saved to `spatial/` in the `spatial_qc/` subdirectory.
 
 **Known issues** - `diameter_used` was not being written to `segmentation_results` during prototype runs due to Cellpose returning `None` when diameter is not explicitly set. Values manually set to 30 for prototype validation. Fix implemented in `segmentation.py` but prototype slides have not been re-segmented.
+
+---
+
+## Report Generation
+*Last updated: 2026-04-20*
+
+**HTML** - The decision was made to generate reports using html as opposed to streamlit or other interactive dashboards due to the need to keep projects separated for researchers using the service. 
+
+**UMAP** - UMAP figures are generated per-slide as opposed to a grouped overview of the project as different tissues/locations would exist on the slide and averaging position would not make sense in reporting. 
+
+**Averages** - For the remainder of reports, the project average is returned as a general overview of the data from the project. 
