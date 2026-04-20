@@ -8,3 +8,4 @@ scipy==1.16.3
 squidpy==1.8.1
 tifffile==2026.2.24
 torch==2.10.0
+plotly==6.7.0
