@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 2/20/2026
-# Version: v0.2.0
+# Version: v0.3.0
 # Contact: boyeshenry@gmail.com
 # Description: This script computes the channel statistics for each channel of each slide.
 # It flags channels that have low signals and corrects their illumination. It then writes the 
@@ -25,6 +25,9 @@ import xml.etree.ElementTree as ET
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 DB_PATH = os.environ.get("AKOYA_DB")
+SLURM_ARRAY = os.environ.get("SLURM_ARRAY_TASK_ID")
+if SLURM_ARRAY:
+    SLURM_ARRAY = int(SLURM_ARRAY)
 
 parser = argparse.ArgumentParser(description="Project folder name")
 parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
@@ -174,6 +177,9 @@ if __name__ == "__main__":
     logger.info("Scanning for files...")
     files = scan_for_files(f"{ISILON_BASE}/{folder_name}")
     logger.info(f"Found {len(files)} files")
+
+    if SLURM_ARRAY:
+        files = [files[SLURM_ARRAY]]
 
     for file in files:
         if is_already_processed(db_path, file, "channel_stats"):

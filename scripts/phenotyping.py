@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/16/2026
-# Version: v0.3.0
+# Version: v0.4.0
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the AnnData files and preprocesses them, performs Leiden clustering, and UMAP embedding. 
 # It then plots the UMAP data based on marker and cluster. It creates a heatmap based on the clustering and save the figures.
@@ -20,6 +20,9 @@ from utils import setup_logging
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 DB_PATH = os.environ.get("AKOYA_DB")
+SLURM_ARRAY = os.environ.get("SLURM_ARRAY_TASK_ID")
+if SLURM_ARRAY:
+    SLURM_ARRAY = int(SLURM_ARRAY)
 
 parser = argparse.ArgumentParser(description="Project folder name")
 parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
@@ -59,6 +62,7 @@ def find_slides(cursor, project):
     res = cursor.fetchall()
 
     if res:
+        res.sort(key=lambda x: x[0])
         return res
     else:
         print('No data found! Please check the database.')
@@ -249,6 +253,9 @@ if __name__ == "__main__":
     slides = find_slides(cursor, folder_name)
     if not slides:
         exit()
+
+    if SLURM_ARRAY:
+        slides = [slides[SLURM_ARRAY]]
     
     for slide in slides:
         try:

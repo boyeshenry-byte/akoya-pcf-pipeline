@@ -5,4 +5,6 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=64G
 
-/opt/python/3.11.3/bin/python scripts/spatial_analysis.py --project $1 --n_neigh $2
+/opt/python/3.11.3/bin/python scripts/spatial_analysis.py --project $1 --n_neigh $3
+
+submit_downstream.sh --project $1 --panel_config $2 --n_neigh $3 --stage generate_report
