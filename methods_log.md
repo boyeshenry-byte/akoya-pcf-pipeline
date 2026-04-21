@@ -136,3 +136,12 @@ Updated to `.intensity_mean` and `.intensity_max` respectively.
 **UMAP** - UMAP figures are generated per-slide as opposed to a grouped overview of the project as different tissues/locations would exist on the slide and averaging position would not make sense in reporting. 
 
 **Averages** - For the remainder of reports, the project average is returned as a general overview of the data from the project. 
+
+---
+
+## HPC/parallelization
+*Last updated: 2026-04-21*
+
+**Two-phase submission** - Scripts were designed with two-phase submission. The current pipeline design uses a combination of checking the environment for what files are available in early stages. Then checks to ensure stage completion in the database before writing orphan data in later stages. Since the later stages cannot know the slide count until the database is populated, they are implemented in a second phase after the slides have been input. 
+
+**SLURM_ARRAY_TASK_ID** - SLURM_ARRAY_TASK_ID is used to index slides via SLURM submission. It is used as a fallback for local runs and to ensure deterministic ordering so slides are mapped the same across concurrent runs. 

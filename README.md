@@ -39,6 +39,7 @@ akoya_pcf/
 ├── requirements.txt
 ├── schema.sql
 ├── submit_pipeline.sh
+├── submit_downstream.sh
 ├── tests/
 ├── notebooks/
 │   ├── 01_metadata_extraction_testing.ipynb
@@ -112,10 +113,10 @@ Execute in order:
 ### HPC Execution (Slurm)
 For running the full pipeline on the HPC, use the master submission script:
 ```bash
-bash submit_pipeline.sh --project my_project [--diameter None] [--n_neigh 10]
+bash submit_pipeline.sh --project my_project [--diameter None] [--n_neigh 10] [--panel_config configs/io60_panel_config.json]
 ```
 
-This submits all pipeline stages as dependent Slurm jobs. Each stage only runs if the previous one completes successfully. Logs are saved to `$AKOYA_ISILON/<project>/logs/`.
+This submits a two-phased parallelized SLURM job. In phase one a stage only runs if the previous one completes successfully. Upon phase one completion phase two starts automatically. Logs are saved to `$AKOYA_ISILON/<project>/logs/`.
 
 **Note:** `init_db.py` is a one-time setup step and must be run manually before the first pipeline execution.
 
