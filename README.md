@@ -117,7 +117,7 @@ For running the full pipeline on the HPC, use the master submission script:
 bash submit_pipeline.sh --project my_project [--diameter None] [--n_neigh 10] [--panel_config configs/io60_panel_config.json]
 ```
 
-This submits a two-phased parallelized SLURM job. In phase one a stage only runs if the previous one completes successfully. Upon phase one completion phase two starts automatically. Logs are saved to `$AKOYA_ISILON/<project>/logs/`.
+This submits a two-phased parallelized SLURM job. In phase one a stage only runs if the previous one completes successfully. Upon phase one completion phase two starts automatically automatic triggers for each stage. Logs are saved to `$AKOYA_ISILON/<project>/logs/`.
 
 **Note:** `init_db.py` is a one-time setup step and must be run manually before the first pipeline execution.
 
