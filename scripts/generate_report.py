@@ -9,7 +9,6 @@
 # =============================================================================
 
 import pandas as pd
-import numpy as np
 import anndata as ad
 import os
 import argparse
@@ -138,11 +137,12 @@ def generate_umap_clusters(adata):
     fig = []
 
     for i, a in enumerate(adata):
-        fig.append(px.scatter(x=a.obsm['X_umap'][:,0], y=a.obsm['X_umap'][:,1], color=a.obs['leiden'], title=f"Slide {i} UMAP"))
+        fig.append(px.scatter(x=a.obsm['X_umap'][:,0], y=a.obsm['X_umap'][:,1], color=a.obs['leiden'], \
+            title=f"Slide {a.obs['slide_name'].iloc[0]} UMAP"))
 
     return fig
 
-def generate_nhood_heatmap(nhood_zscore):
+def generate_nhood_heatmap(nhood_zscore, slide_name):
     """
     This function generates a heatmap of the neighborhood zscores
 
@@ -151,19 +151,23 @@ def generate_nhood_heatmap(nhood_zscore):
     nhood_zscores : matrix
         An n-by-n matrix of z scores
 
+    slide_name : str
+        The name of the slide
+
     : RETURNS :
 
     fig : heatmap
         A plotly heatmap of neighborhood z scores
     """
 
-    avg_z = np.mean([df.values for df in nhood_zscore], axis=0)
+    fig = []
 
-    fig = px.imshow(avg_z)
+    for i, a in enumerate(nhood_zscore):
+        fig.append(px.imshow(a, title=f"Slide {slide_name[i]} neighborhood z scores"))
 
     return fig
 
-def generate_co_occ_heatmap(co_occ):
+def generate_co_occ_heatmap(co_occ, slide_name):
     """
     This function generates a heatmap of the co-occurrence values
 
@@ -171,6 +175,9 @@ def generate_co_occ_heatmap(co_occ):
 
     co_occ : df
         A DataFrame containing co-occurrence values
+    
+    slide_name : str
+        The name of the slide
 
 
     : RETURNS :
@@ -179,14 +186,15 @@ def generate_co_occ_heatmap(co_occ):
         A plotly heatmap of co-occurrence values
     """
 
-    avg_occ = np.mean([df.pivot_table(index=df.index, columns='cluster_1', values='score', aggfunc='mean')\
-        .values for df in co_occ], axis=0)
+    fig = []
 
-    fig = px.imshow(avg_occ)
+    for i, a in enumerate(co_occ):
+        fig.append(px.imshow(a.pivot_table(columns='cluster_1', index='interval', values='score'), \
+            title=f"Slide {slide_name[i]} co-occurrence"))
 
     return fig
 
-def generate_ripley_curves(ripley_f, ripley_g, ripley_l):
+def generate_ripley_curves(ripley_f, ripley_g, ripley_l, slide_name):
     """
     This function generates the Ripley's statistics curves for each mode
 
@@ -201,6 +209,9 @@ def generate_ripley_curves(ripley_f, ripley_g, ripley_l):
     ripley_l : DataFrame
         A DataFrame containing Ripley's statistics
 
+    slide_name : str
+        The name of the slide
+
     
     : RETURNS :
 
@@ -214,18 +225,23 @@ def generate_ripley_curves(ripley_f, ripley_g, ripley_l):
         A lineplot of Ripley's statistics
     """
 
-    avg_f = pd.concat(ripley_f).groupby(['bins', 'leiden'])['stats'].mean().reset_index()
-    avg_g = pd.concat(ripley_g).groupby(['bins', 'leiden'])['stats'].mean().reset_index()
-    avg_l = pd.concat(ripley_l).groupby(['bins', 'leiden'])['stats'].mean().reset_index()
+    fig_f = []
+    fig_g = []
+    fig_l = []
 
+    for i, a in enumerate(ripley_f):
+        fig_f.append(px.line(a, x='bins', y='stats', color='leiden',\
+            title=f"Slide {slide_name[i]} Ripley's F"))
 
-    plot_f = px.line(avg_f, x='bins', y='stats', color='leiden', title="Ripley's F")
+    for i, a in enumerate(ripley_g):
+        fig_g.append(px.line(a, x='bins', y='stats', color='leiden',\
+            title=f"Slide {slide_name[i]} Ripley's G"))
+    
+    for i, a in enumerate(ripley_l):
+        fig_l.append(px.line(a, x='bins', y='stats', color='leiden',\
+            title=f"Slide {slide_name[i]} Ripley's L"))
 
-    plot_g = px.line(avg_g, x='bins', y='stats', color='leiden', title="Ripley's G")
-
-    plot_l = px.line(avg_l, x='bins', y='stats', color='leiden', title="Ripley's L")
-
-    return plot_f, plot_g, plot_l
+    return fig_f, fig_g, fig_l
 
 def generate_report(umap, zscores, co_occ, f, g, l):
     """
@@ -257,8 +273,9 @@ def generate_report(umap, zscores, co_occ, f, g, l):
         An html string 
     """
 
-    report = ''.join([i.to_html(full_html=False) for i in umap]) + zscores.to_html(full_html=False) + co_occ.to_html(full_html=False)\
-         + f.to_html(full_html=False) + g.to_html(full_html=False) + l.to_html(full_html=False)
+    report = ''.join([i.to_html(full_html=False) for i in umap]) + ''.join([i.to_html(full_html=False) for i in zscores])\
+        + ''.join([i.to_html(full_html=False) for i in co_occ]) + ''.join([i.to_html(full_html=False) for i in f]) + \
+            ''.join([i.to_html(full_html=False) for i in g]) + ''.join([i.to_html(full_html=False) for i in l])
 
     return report
 
@@ -274,6 +291,7 @@ if __name__ == "__main__":
         exit()
     
     project_data = {
+                    'slide_name': [],
                     'adata': [],
                     'nhood_zscore': [],
                     'nhood_pvals': [],
@@ -294,7 +312,7 @@ if __name__ == "__main__":
             adata = load_adata(spatial_dir, slide_id, slide_name)
 
             
-
+            project_data['slide_name'].append(slide_name)
             project_data['adata'].append(adata)
             project_data['nhood_zscore'].append(csvs['nhood_zscore'])
             project_data['nhood_pvals'].append(csvs['nhood_pvals'])
@@ -311,9 +329,10 @@ if __name__ == "__main__":
 
     try:
         umap = generate_umap_clusters(project_data['adata'])
-        zscores = generate_nhood_heatmap(project_data['nhood_zscore'])
-        co_occ = generate_co_occ_heatmap(project_data['co_occ'])
-        f, g, l = generate_ripley_curves(project_data['ripley_F'], project_data['ripley_G'], project_data['ripley_L'])
+        zscores = generate_nhood_heatmap(project_data['nhood_zscore'], project_data['slide_name'])
+        co_occ = generate_co_occ_heatmap(project_data['co_occ'], project_data['slide_name'])
+        f, g, l = generate_ripley_curves(project_data['ripley_F'], project_data['ripley_G'], \
+            project_data['ripley_L'], project_data['slide_name'])
 
     except Exception as e:
         print(e)
