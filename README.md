@@ -64,6 +64,7 @@ akoya_pcf/
     ├── ingestion.py
     ├── phenotyping.py
     ├── preprocessing.py
+    ├── reset_project.py
     ├── segmentation.py
     ├── spatial_analysis.py
     ├── utils.py
