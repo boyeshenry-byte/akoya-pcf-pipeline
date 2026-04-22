@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 4/20/2026
-# Version: v0.1.0
+# Version: v0.1.01
 # Contact: boyeshenry@gmail.com
 # Description: This script final AnnData files and output CSVs and generates visualizations for them for easy analysis.
 # =============================================================================
