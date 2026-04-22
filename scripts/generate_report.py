@@ -65,7 +65,7 @@ def load_spatial_csvs(spatial_dir, slide_id, slide_name):
         The slide name
 
     
-    : RETURN :
+    : RETURNS :
 
     data : dict
         A dictionary of the CSVs
@@ -111,7 +111,7 @@ def load_adata(spatial_dir, slide_id, slide_name):
         The slide name
 
     
-    : RETURN :
+    : RETURNS :
 
     adata: AnnData object
         An AnnData object
