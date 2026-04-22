@@ -3,13 +3,14 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 2/25/2026
-# Version: v0.2.0
+# Version: v0.2.01
 # Contact: boyeshenry@gmail.com
 # Description: This script contains the shared pipeline utilities including database helpers and logging setup.
 # =============================================================================
 
 import sqlite3
 import logging
+import os
 
 
 def is_already_processed(db_path, file_path, table):
