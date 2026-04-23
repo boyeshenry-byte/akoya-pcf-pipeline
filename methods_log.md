@@ -7,13 +7,15 @@ The purpose of this pipeline is to provide spatial analysis for the Akoya PCF co
 ---
 
 ## Ingestion
-*Last updated: 2026-03-31*
+*Last updated: 2026-04-23*
 
 Scans project folders on the Isilon for .QPTIFF files and extracts metadata including slide ID, number of channels, marker names, and image dimensions.
 
 **Validation** - Files are validated for completeness before database entry. Required fields are file path, file name, slide ID, number of channels, marker names, and image dimensions. Channel count is cross-checked against the number of marker names detected. 
 
 **Schema decisions** - `file_path` is `NOT NULL` as a slide record without a file path is meaningless for downstream processing. Foreign key relationships enforce that pipeline status records cannot exist without a corresponding slide record. 
+
+**Run tracking** - Run tracking with deduplication validation added to track slides processed together. Tracking uses the project name and date the slides were processed to perform deduplication checks. If no date is provided, the function is skipped to prevent failure or incorrect information entry. `run_id` is stored as a foreign key to track slides. 
 
 ---
 
