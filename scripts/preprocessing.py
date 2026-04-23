@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 2/20/2026
-# Version: v0.3.0
+# Version: v0.3.1
 # Contact: boyeshenry@gmail.com
 # Description: This script computes the channel statistics for each channel of each slide.
 # It flags channels that have low signals and corrects their illumination. It then writes the 
@@ -137,8 +137,8 @@ def write_preprocessing_results(db_path, file_path, results):
                       (status, slide_id))
         conn.commit()
     except Exception as e:
-        print(f"Error: {e}")
         conn.rollback()
+        raise
     finally:
         conn.close()
 
@@ -166,6 +166,7 @@ def save_composite_png(file_path, output_dir):
     return
 
 if __name__ == "__main__":
+    start_time=  datetime.now()
     folder_name = args.project
     db_path = DB_PATH
     project_path = f"{ISILON_BASE}/{folder_name}"
@@ -182,18 +183,22 @@ if __name__ == "__main__":
         files = [files[SLURM_ARRAY]]
 
     for file in files:
-        if is_already_processed(db_path, file, "channel_stats"):
-            logger.info(f"Skipping {os.path.basename(file)}: already processed.")
-            continue
-        logger.info(f"Preprocessing {os.path.basename(file)}...")
-        result = process_slide(file)
-        for r in result:
-            logger.info(f"  Channel {r['channel_index']} — {r['flag_message']}")
-        write_preprocessing_results(db_path, file, result)
+        try:
+            if is_already_processed(db_path, file, "channel_stats"):
+                logger.info(f"Skipping {os.path.basename(file)}: already processed.")
+                continue
+            logger.info(f"Preprocessing {os.path.basename(file)}...")
+            result = process_slide(file)
+            for r in result:
+                logger.info(f"  Channel {r['channel_index']} — {r['flag_message']}")
+            write_preprocessing_results(db_path, file, result)
 
-        slide_name = os.path.splitext(os.path.basename(file))[0]
-        output_dir = os.path.join(os.path.dirname(file), "qc_pngs", slide_name)
-        save_composite_png(file, output_dir)
-        logger.info(f" PNGs saved to {output_dir}")
+            slide_name = os.path.splitext(os.path.basename(file))[0]
+            output_dir = os.path.join(os.path.dirname(file), "qc_pngs", slide_name)
+            save_composite_png(file, output_dir)
+            logger.info(f" PNGs saved to {output_dir}")
+        except Exception as e:
+            logger.error(f"Slide {os.path.basename(file)} failed", exc_info=True)
 
-    logger.info("Done!")
+    end_time = datetime.now() - start_time
+    logger.info(f"Done! Finished in {end_time}")

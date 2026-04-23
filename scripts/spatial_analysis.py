@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/26/2026
-# Version: v0.4.0
+# Version: v0.4.1
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the phenotyped AnnData files, builds a spatial graph, performs neighborhood enrichment analysis,
 # computes co-occurrence scores, runs Ripley's statistics and exports the spatial metrics.
@@ -19,6 +19,7 @@ import squidpy as sq
 import seaborn as sns
 import matplotlib.pyplot as plt
 from utils import setup_logging
+from datetime import datetime
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 DB_PATH = os.environ.get("AKOYA_DB")
@@ -284,6 +285,7 @@ def update_pipeline_status(cursor, status, slide_id):
     return
 
 if __name__ == "__main__":
+    start_time = datetime.now()
     folder_name = args.project
     n_neigh = args.n_neigh
     db_path = DB_PATH
@@ -342,14 +344,15 @@ if __name__ == "__main__":
             conn.commit()
 
         except Exception as e:
-            logger.error(f"Slide {slide_id} failed with error: {e}")
+            logger.error(f"Slide {slide_id} failed", exc_info=True)
             status = "Failed"
             try:
                 update_pipeline_status(cursor, status, slide_id)
                 conn.commit()
             except Exception as db_err:
-                logger.error(f"DB update failed: {db_err}")
+                logger.error(f"DB update failed", exc_info=True)
     
     conn.close()
 
-    logger.info("Done!")
+    end_time  = datetime.now() - start_time
+    logger.info(f"Done! Finished in {end_time}")

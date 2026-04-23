@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/5/2026
-# Version: v0.3.0
+# Version: v0.3.1
 # Contact: boyeshenry@gmail.com
 # Description: This script takes in mask files created by segmenting .tiff files from the Akoya PCF. It extracts the cell features
 # and intensities then writes them to a database for spatial analysis.
@@ -147,8 +147,8 @@ def write_morphology(db_path, file_path, cell_features):
                 cell['centroid_y'], cell['eccentricity'], cell['perimeter'], cell['solidity']))
         conn.commit()
     except Exception as e:
-        print(f"Error: {e}")
         conn.rollback()
+        raise
     finally:
         conn.close()
 
@@ -199,15 +199,16 @@ def write_intensity(db_path, file_path, intensity_features):
                       (status, slide_id))
         conn.commit()
     except Exception as e:
-        print(f"Error: {e}")
         cursor.execute("UPDATE pipeline_status SET feature_extraction = ? WHERE slide_id = ?",
                       ('Failed', slide_id))
         conn.rollback()
+        raise
     finally:
         conn.close()
 
 
 if __name__ == "__main__":
+    start_time = datetime.now()
     folder_name = args.project
     db_path = DB_PATH
     project_path = f"{ISILON_BASE}/{folder_name}"
@@ -224,17 +225,20 @@ if __name__ == "__main__":
         files = [files[SLURM_ARRAY]]
 
     for file in files:
-        if is_already_processed(db_path, file, 'cell_features'):
-            logger.info(f"Skipping {os.path.basename(file)}: already processed.")
-            continue
-        mask_dir = os.path.join(os.path.dirname(file), 'masks')
-        file_name = os.path.splitext(os.path.basename(file))[0] + "_mask.tiff"
-        mask_path = os.path.join(mask_dir, file_name)
-        mask = tifffile.imread(f"{mask_path}")
-        
-        logger.info(f"Extracting {os.path.basename(file)}...")
-        write_morphology(db_path, file, extract_morphology(mask))
-        write_intensity(db_path, file, extract_intensity(mask, file))
-        
+        try:
+            if is_already_processed(db_path, file, 'cell_features'):
+                logger.info(f"Skipping {os.path.basename(file)}: already processed.")
+                continue
+            mask_dir = os.path.join(os.path.dirname(file), 'masks')
+            file_name = os.path.splitext(os.path.basename(file))[0] + "_mask.tiff"
+            mask_path = os.path.join(mask_dir, file_name)
+            mask = tifffile.imread(f"{mask_path}")
+            
+            logger.info(f"Extracting {os.path.basename(file)}...")
+            write_morphology(db_path, file, extract_morphology(mask))
+            write_intensity(db_path, file, extract_intensity(mask, file))
+        except Exception as e:
+            logger.error(f"Slide {os.path.basename(file)} failed", exc_info=True)
 
-    logger.info("Done!")
+    end_time = datetime.now() - start_time
+    logger.info(f"Done! Finished in {end_time}")

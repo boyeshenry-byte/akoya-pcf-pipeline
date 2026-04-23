@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/16/2026
-# Version: v0.4.0
+# Version: v0.4.1
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the AnnData files and preprocesses them, performs Leiden clustering, and UMAP embedding. 
 # It then plots the UMAP data based on marker and cluster. It creates a heatmap based on the clustering and save the figures.
@@ -17,6 +17,7 @@ import json
 import anndata as ad 
 import scanpy as sc 
 from utils import setup_logging
+from datetime import datetime
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 DB_PATH = os.environ.get("AKOYA_DB")
@@ -26,7 +27,7 @@ if SLURM_ARRAY:
 
 parser = argparse.ArgumentParser(description="Project folder name")
 parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
-parser.add_argument("pannel_config", default="configs/io60_panel_config.json", type=str, 
+parser.add_argument("--panel_config", default="configs/io60_panel_config.json", type=str, 
 help="Path to panel config JSON for cluster annotation")
 args = parser.parse_args()
 
@@ -232,6 +233,7 @@ def update_pipeline_status(cursor, status, slide_id):
     return
 
 if __name__ == "__main__":
+    start_time = datetime.now()
     folder_name = args.project
     db_path = DB_PATH
     project_path = f"{ISILON_BASE}/{folder_name}"
@@ -268,7 +270,7 @@ if __name__ == "__main__":
             adata = preprocess(adata)
             adata = dimension_reduction(adata)
             adata = cluster(adata)
-            adata = annotate_clusters(adata)
+            adata = annotate_clusters(adata, args.panel_config)
             adata = embed(adata)
             qc_plot(adata, figures_dir, slide_id)
             
@@ -284,9 +286,10 @@ if __name__ == "__main__":
             status = 'Failed'
 
             update_pipeline_status(cursor, status, slide_id)
-            logger.error(f"Slide {slide_id} failed {e}!")
+            logger.error(f"Slide {slide_id} failed", exc_info=True)
 
     conn.commit()
     conn.close()
-
-    logger.info("Done!")
+    
+    end_time  = datetime.now() - start_time
+    logger.info(f"Done! Finished in {end_time}")

@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 4/20/2026
-# Version: v0.1.01
+# Version: v0.1.2
 # Contact: boyeshenry@gmail.com
 # Description: This script final AnnData files and output CSVs and generates visualizations for them for easy analysis.
 # =============================================================================
@@ -13,6 +13,8 @@ import anndata as ad
 import os
 import argparse
 import plotly.express as px
+from datetime import datetime
+from utils import setup_logging
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 
@@ -281,8 +283,12 @@ def generate_report(umap, zscores, co_occ, f, g, l):
 
 
 if __name__ == "__main__":
+    start_time = datetime.now()
     folder_name = args.project
     project_path = f"{ISILON_BASE}/{folder_name}"
+    log_dir = os.path.join(project_path, "logs")
+
+    logger = setup_logging(folder_name, log_dir)
 
     spatial_dir = os.path.join(project_path, 'spatial')
 
@@ -325,7 +331,7 @@ if __name__ == "__main__":
             project_data['ripley_L_pvals'].append(csvs['ripley_L_pvals'])
 
         except Exception as e:
-            print(e)
+            logger.error(f"Slide {slide_name} failed", exc_info=True)
 
     try:
         umap = generate_umap_clusters(project_data['adata'])
@@ -335,7 +341,7 @@ if __name__ == "__main__":
             project_data['ripley_L'], project_data['slide_name'])
 
     except Exception as e:
-        print(e)
+        logger.error(f"Visualization failed", exc_info=True)
 
     try:
         report = generate_report(umap, zscores, co_occ, f, g, l)
@@ -354,4 +360,7 @@ if __name__ == "__main__":
             r.write(html)
 
     except Exception as e:
-        print(e)
+        logger.error(f"Report generation failed", exc_info=True)
+
+    end_time = datetime.now() - start_time
+    logger.info(f"Done! Finished in {end_time}")

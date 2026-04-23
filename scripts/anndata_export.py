@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd 
 import argparse
 from utils import setup_logging
+from datetime import datetime
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 DB_PATH = os.environ.get("AKOYA_DB")
@@ -312,6 +313,7 @@ def validate_adata(adata):
 
 
 if __name__ == "__main__":
+    start_time = datetime.now()
     folder_name = args.project
     db_path = DB_PATH
     project_path = f"{ISILON_BASE}/{folder_name}"
@@ -340,25 +342,29 @@ if __name__ == "__main__":
         slides = [slides[SLURM_ARRAY]]
     
     for slide_id, slide_name in slides:
-        count = check_cell_counts(cursor, slide_id)
-        feat = fetch_cell_feat(cursor, slide_id)
-        intensity = fetch_cell_intensity(cursor, slide_id)
-        meta = fetch_channel_metadata(cursor, slide_id)
-        data = build_anndata(feat, intensity[0], intensity[1], meta, slide_id, slide_name)
-        if validate_adata(data):
-            output_path = os.path.join(anndata_dir, f"slide_{slide_id}_{slide_name}.h5ad")
-            data.write_h5ad(output_path)
-            status = 'Complete'
-            update_status(cursor, slide_id, status, None)
+        try:
+            count = check_cell_counts(cursor, slide_id)
+            feat = fetch_cell_feat(cursor, slide_id)
+            intensity = fetch_cell_intensity(cursor, slide_id)
+            meta = fetch_channel_metadata(cursor, slide_id)
+            data = build_anndata(feat, intensity[0], intensity[1], meta, slide_id, slide_name)
+            if validate_adata(data):
+                output_path = os.path.join(anndata_dir, f"slide_{slide_id}_{slide_name}.h5ad")
+                data.write_h5ad(output_path)
+                status = 'Complete'
+                update_status(cursor, slide_id, status, None)
 
-            
-        else:
-            status = 'Failed'
-            update_status(cursor, slide_id, status, None)
-            logger.error(f"Slide {slide_id} failed!")
+                
+            else:
+                status = 'Failed'
+                update_status(cursor, slide_id, status, None)
+                logger.error(f"Slide {slide_id} failed!")
+        except Exception as e:
+            logger.error(f"Slide {slide_name} failed", exc_info=True)
     
     conn.commit()
     conn.close()
 
-    logger.info("Done!")
+    end_time = datetime.now() - start_time
+    logger.info(f"Done! Finished in {end_time}")
     
