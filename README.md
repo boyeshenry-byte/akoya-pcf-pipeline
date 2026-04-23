@@ -151,6 +151,8 @@ The pipeline uses a SQLite database with the following tables:
 - Consider pathologist review of representative segmentation overlays
 - Validate feature extraction
 - JOSS publication
+- Add per-tile progress logging to segmentation
+- SLURM end-to-end testing with array jobs on HPC
 
 ---
 
