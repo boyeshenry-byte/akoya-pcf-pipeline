@@ -207,3 +207,13 @@ QC visualizations generated per slide during spatial analysis.
 | `uns['leiden_ripley_G']` | Ripley's G statistics |
 | `uns['leiden_ripley_L']` | Ripley's L statistics |
 | `uns['cell_diameter']` | Cell diameter used for co-occurrence intervals |
+
+### HTML Report
+Visualizations are reported on a static HTML document containing:
+
+- per slide UMAP clustering analysis
+- per slide neighborhood enrichment z-score heatmap (clusters × clusters)
+- per slide Ripley's statistic curves per cluster across distance bins
+- per slide mean co-occurrence score heatmap averaged across distance intervals (clusters × clusters)
+
+This report is saved in the root project directory as <project_name>_report.html
