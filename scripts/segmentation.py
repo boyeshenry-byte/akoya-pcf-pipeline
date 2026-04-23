@@ -108,7 +108,6 @@ def detect_cells(tiles):
         cell_dict = {
             'mask': masks,
             'flow': flows,
-            'style': styles,
             "row_start" : tile['row_start'],
             "row_stop" : tile['row_stop'],
             "col_start" : tile['col_start'],
