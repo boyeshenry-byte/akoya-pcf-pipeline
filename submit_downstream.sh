@@ -43,7 +43,7 @@ case $STAGE in
         and s.file_path like '%$PROJECT%'")
 
         JOB5=$( sbatch --parsable \
-        --array=0-$(($dbCount-1)) \
+        --array=0-$(($dbCount-1))%3 \
         --output=$AKOYA_ISILON/$PROJECT/logs/anndata_export_%A_%a.log \
         --error=$AKOYA_ISILON/$PROJECT/logs/anndata_export_%A_%a.err \
         scripts/slurm/anndata_export.sh $PROJECT)
@@ -58,7 +58,7 @@ case $STAGE in
         and s.file_path like '%$PROJECT%'")
 
         JOB6=$( sbatch --parsable \
-        --array=0-$(($dbCount-1)) \
+        --array=0-$(($dbCount-1))%3 \
         --output=$AKOYA_ISILON/$PROJECT/logs/phenotyping_%A_%a.log \
         --error=$AKOYA_ISILON/$PROJECT/logs/phenotyping_%A_%a.err \
         scripts/slurm/phenotyping.sh $PROJECT $PANEL_CONFIG)
@@ -73,7 +73,7 @@ case $STAGE in
         and s.file_path like '%$PROJECT%'")
 
         JOB7=$( sbatch --parsable \
-        --array=0-$(($dbCount-1)) \
+        --array=0-$(($dbCount-1))%3 \
         --output=$AKOYA_ISILON/$PROJECT/logs/spatial_analysis_%A_%a.log \
         --error=$AKOYA_ISILON/$PROJECT/logs/spatial_analysis_%A_%a.err \
         scripts/slurm/spatial_analysis.sh $PROJECT $N_NEIGH)
