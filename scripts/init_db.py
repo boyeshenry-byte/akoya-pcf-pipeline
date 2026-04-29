@@ -23,4 +23,4 @@ conn.executescript("DROP TABLE IF EXISTS channel_stats; DROP TABLE IF EXISTS pip
 conn.executescript(schema)
 conn.commit()
 conn.close()
-print("Database recreated")
+print("Database created")
