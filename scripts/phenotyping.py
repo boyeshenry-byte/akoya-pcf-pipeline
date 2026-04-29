@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/16/2026
-# Version: v0.4.1
+# Version: v0.4.2
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the AnnData files and preprocesses them, performs Leiden clustering, and UMAP embedding. 
 # It then plots the UMAP data based on marker and cluster. It creates a heatmap based on the clustering and save the figures.
@@ -160,7 +160,7 @@ def annotate_clusters(adata, panel_config):
 
     annotations = {}
 
-    for cluster, expression in zip(agg.obs_names, agg.X):
+    for cluster, expression in zip(agg.obs_names, agg.layers['mean']):
         top_marker = agg.var_names[np.argmax(expression)]
         cell_type = marker_lookup.get(top_marker, "unknown")
         annotations[cluster] = cell_type
