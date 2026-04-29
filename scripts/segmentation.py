@@ -109,6 +109,7 @@ def detect_cells(tiles, logger):
         cell_dict = {
             'mask': masks,
             'flow': flows,
+            'diams': diams,
             "row_start" : tile['row_start'],
             "row_stop" : tile['row_stop'],
             "col_start" : tile['col_start'],
@@ -161,7 +162,7 @@ def save_masks(masks, file_path, output_dir):
 
     return
 
-def write_segmentation_results(db_path, file_path, stitch):
+def write_segmentation_results(db_path, file_path, stitch, diams):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -184,7 +185,7 @@ def write_segmentation_results(db_path, file_path, stitch):
             (slide_id, cell_count, diameter_used, tile_size, 
             tile_overlap, segment_status, error_message, processed_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (slide_id, cell_count, args.diameter, tile_size,
+            (slide_id, cell_count, diams, tile_size,
             tile_overlap, status, error_message, datetime.now()))
         
         # Update pipeline status
@@ -233,10 +234,11 @@ if __name__ == "__main__":
             dapi = extract_dapi_channel(file)
             tiles = tile_image(dapi)
             cells = detect_cells(tiles, logger)
+            diams = np.mean([i['diams'] for i in cells])
             stitch = stitch_masks(cells)
             output_dir = os.path.join(os.path.dirname(file), 'masks')
             save_masks(stitch, file, output_dir)
-            write_segmentation_results(db_path, file, stitch)
+            write_segmentation_results(db_path, file, stitch, diams)
         except Exception as e:
             logger.error(f"File {file} failed!", exc_info=True)
 
