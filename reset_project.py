@@ -26,6 +26,7 @@ def reset_db(folder_name, cursor):
     cursor.execute("""DELETE FROM pipeline_status WHERE slide_id IN (
                         SELECT slide_id FROM slides WHERE file_path LIKE ?);""", (project_filter,))
     cursor.execute("DELETE FROM slides WHERE file_path LIKE ?;", (project_filter,))
+    cursor.execute("DELETE FROM sqlite_sequence WHERE name='slides';")
 
 
 
