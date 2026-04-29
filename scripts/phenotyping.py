@@ -265,13 +265,19 @@ if __name__ == "__main__":
             file_path = os.path.join(project_path, 'anndata', f"slide_{slide_id}_{slide_name}.h5ad")
             adata = ad.read_h5ad(file_path)
 
-            logger.info(f"Phenotyping slide {slide_id}")
+            logger.info(f"Phenotyping slide {slide_name}")
 
+            logging.info(f"Preprocessing slide {slide_name}")
             adata = preprocess(adata)
+            logging.info(f"Perfroming dimension reduction on {slide_name}")
             adata = dimension_reduction(adata)
+            logging.info(f"Clustering {slide_name}")
             adata = cluster(adata)
+            logging.info(f"Annotating {slide_name}")
             adata = annotate_clusters(adata, args.panel_config)
+            logging.info(f"Embedding {slide_name}")
             adata = embed(adata)
+            logging.info(f"Generating QC plots for {slide_name}")
             qc_plot(adata, figures_dir, slide_id)
             
             output_path = os.path.join(phenotyping_dir, f"slide_{slide_id}_{slide_name}_phenotyped.h5ad")
