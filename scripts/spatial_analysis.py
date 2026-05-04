@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/26/2026
-# Version: v0.4.1
+# Version: v0.4.2
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the phenotyped AnnData files, builds a spatial graph, performs neighborhood enrichment analysis,
 # computes co-occurrence scores, runs Ripley's statistics and exports the spatial metrics.
@@ -321,6 +321,7 @@ if __name__ == "__main__":
             
             cursor.execute("SELECT diameter_used FROM segmentation_results WHERE slide_id=?", (slide_id, ))
             diameter = cursor.fetchone()[0]
+            diameter = float(diameter)
             adata.uns["cell_diameter"] = diameter
             adata.uns["co_occurrence_interval"] = np.arange(diameter, 11 * diameter, diameter)
 
