@@ -267,17 +267,17 @@ if __name__ == "__main__":
 
             logger.info(f"Phenotyping slide {slide_name}")
 
-            logging.info(f"Preprocessing slide {slide_name}")
+            logger.info(f"Preprocessing slide {slide_name}")
             adata = preprocess(adata)
-            logging.info(f"Perfroming dimension reduction on {slide_name}")
+            logger.info(f"Perfroming dimension reduction on {slide_name}")
             adata = dimension_reduction(adata)
-            logging.info(f"Clustering {slide_name}")
+            logger.info(f"Clustering {slide_name}")
             adata = cluster(adata)
-            logging.info(f"Annotating {slide_name}")
+            logger.info(f"Annotating {slide_name}")
             adata = annotate_clusters(adata, args.panel_config)
-            logging.info(f"Embedding {slide_name}")
+            logger.info(f"Embedding {slide_name}")
             adata = embed(adata)
-            logging.info(f"Generating QC plots for {slide_name}")
+            logger.info(f"Generating QC plots for {slide_name}")
             qc_plot(adata, figures_dir, slide_id)
             
             output_path = os.path.join(phenotyping_dir, f"slide_{slide_id}_{slide_name}_phenotyped.h5ad")
