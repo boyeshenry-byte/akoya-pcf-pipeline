@@ -5,3 +5,4 @@ __pycache__
 .ipynb_checkpoints/
 config.py
 notebooks/data/anndata/imc.h5ad
+notebooks/
