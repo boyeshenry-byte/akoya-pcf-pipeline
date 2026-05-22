@@ -187,13 +187,9 @@ def export_metrics(adata, output_dir, slide_id, slide_name):
 
     # Save zscores
     zscore_df = pd.DataFrame(adata.uns["leiden_nhood_enrichment"]["zscore"], index=leiden_labels, columns=leiden_labels)
-    pval_df = pd.DataFrame(adata.uns["leiden_nhood_enrichment"]["pvalue"], index=leiden_labels, columns=leiden_labels)
 
     output = os.path.join(nhood_dir, f"{slide_id}_{slide_name}_zscore.csv")
     zscore_df.to_csv(output)
-
-    output = os.path.join(nhood_dir, f"{slide_id}_{slide_name}_pvalue.csv")
-    pval_df.to_csv(output)
 
     # Save Ripley's Stats
     for mode in modes:
@@ -252,7 +248,7 @@ def plot_spatial_qc(adata, slide_id, spatial_qc_dir):
     plt.close()
 
     plt.figure()
-    sns.lineplot(adata.uns["leiden_ripley_L"], x='bins', y='stats', hue='leiden')
+    sns.lineplot(adata.uns["leiden_ripley_L"]["L_stat"], x='bins', y='stats', hue='leiden')
     plt.title(f"Slide {slide_id} Ripley's L Curve")
     plt.savefig(os.path.join(spatial_qc_dir, f"slide_{slide_id}_ripleys_L_curve.png"))
     plt.close()
