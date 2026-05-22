@@ -76,10 +76,8 @@ def load_spatial_csvs(spatial_dir, slide_id, slide_name):
 
     # Load nhood CSVs
     nhood_zscore = pd.read_csv(os.path.join(spatial_dir, 'neighborhood_enrichment', f"{slide_id}_{slide_name}_zscore.csv"))
-    nhood_pvals = pd.read_csv(os.path.join(spatial_dir, "neighborhood_enrichment", f"{slide_id}_{slide_name}_pvalue.csv"))
 
     data["nhood_zscore"] = nhood_zscore
-    data["nhood_pvals"] = nhood_pvals
 
     # Load Ripley's CSVs
     modes = ["F", "G", "L"]
@@ -300,7 +298,6 @@ if __name__ == "__main__":
                     'slide_name': [],
                     'adata': [],
                     'nhood_zscore': [],
-                    'nhood_pvals': [],
                     'co_occ': [],
                     'ripley_F': [],
                     'ripley_G': [],
@@ -321,7 +318,6 @@ if __name__ == "__main__":
             project_data['slide_name'].append(slide_name)
             project_data['adata'].append(adata)
             project_data['nhood_zscore'].append(csvs['nhood_zscore'])
-            project_data['nhood_pvals'].append(csvs['nhood_pvals'])
             project_data['co_occ'].append(csvs['co_occ'])
             project_data['ripley_F'].append(csvs['ripley_F'])
             project_data['ripley_G'].append(csvs['ripley_G'])
