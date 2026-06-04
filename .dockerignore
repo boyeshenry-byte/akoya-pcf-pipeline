@@ -1,0 +1,9 @@
+akoya_env/
+.git/
+*.pyc
+__pycache__/
+*.db
+logs/
+test_*.py
+*.ipynb
+.env
