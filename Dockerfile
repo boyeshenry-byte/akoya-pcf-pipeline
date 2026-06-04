@@ -9,9 +9,12 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     libgl1 \
     libglib2.0-0 \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR  /app
+
+RUN pip3 install --no-cache-dir git+https://github.com/scverse/squidpy.git@v1.8.1
 
 COPY requirements.txt .
 
