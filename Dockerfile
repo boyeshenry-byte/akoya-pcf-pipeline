@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 \
-    && update-alternatives --install /usr/bin/pip3 pip3 /usr/local/bin/pip3 1
+    && update-alternatives --install /usr/bin/pip3 pip3 /usr/bin/pip3 1
 
 WORKDIR  /app
 
