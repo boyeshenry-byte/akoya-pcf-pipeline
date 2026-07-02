@@ -98,10 +98,28 @@ def process_slide(file_path):
                 'channel_name': channel_name,
                 'stats': stats,
                 'flagged': flagged,
-                'flag_message': message
+                'flag_message': message,
+                'corrected_array': channel
             })
 
     return res
+
+def save_corrected_tiff(file_path, results, output_dir):
+    """
+    This function save the corrected channels for use downstream. 
+    """
+
+    # Stack corrections
+    corrected = np.stack([r['corrected_array'] for r in results]).astype(np.float32)
+
+    # Save channel names
+    channel_names = [r['channel_name'] for r in results]
+
+    file_name = os.path.splitext(os.path.basename(file_path))[0] + "_corrected.tiff"
+    output_path = os.path.join(output_dir, file_name)
+    tifffile.imwrite(output_path, corrected, compression='zstd', bigtiff = True, metadata={'axes': 'CYX', 'Channel':{'Name': channel_names}})
+
+    return
 
 def write_preprocessing_results(db_path, file_path, results):
     conn = sqlite3.connect(db_path)
@@ -143,26 +161,23 @@ def write_preprocessing_results(db_path, file_path, results):
         conn.close()
 
 
-def save_composite_png(file_path, output_dir):
+def save_composite_png(results, output_dir):
     """
     Save a composite PNG of all channels for visual QC
     """
 
     os.makedirs(output_dir, exist_ok=True)
 
-    with tifffile.TiffFile(file_path) as tif:
-        series = tif.series[0]
-        for i, page in enumerate(series.pages):
-            channel = page.asarray()
-            meta = ET.fromstring(page.description)
-            name = meta.find('Name')
-            channel_name = name.text if name is not None else None
-            filename = channel_name if channel_name else f"channel_{i}"
-            if channel.max()> 0:
-                normalized = (channel/channel.max() * 255).astype(np.uint8)
-            else:
-                normalized = channel.astype(np.uint8)
-            Image.fromarray(normalized).save(f"{output_dir}/{filename}.png")
+    for i, r in enumerate(results):
+        channel = r['corrected_array']
+        channel_name= r['channel_name']
+        filename = channel_name if channel_name else f"channel_{i}"
+        if channel.max() > 0:
+            normalized = (channel / channel.max()*255).astype(np.uint8)
+        else:
+            normalized = channel.astype(np.uint8)
+        Image.fromarray(normalized).save(f"{output_dir}/{filename}.png")
+
     return
 
 if __name__ == "__main__":
@@ -170,6 +185,10 @@ if __name__ == "__main__":
     folder_name = args.project
     db_path = DB_PATH
     project_path = f"{ISILON_BASE}/{folder_name}"
+
+    # Make dir for corrected .tiff files
+    corrected_dir = os.path.join(project_path, 'corrected')
+    os.makedirs(corrected_dir, exist_ok=True)
 
     log_dir = os.path.join(project_path, 'logs')
 
@@ -192,10 +211,11 @@ if __name__ == "__main__":
             for r in result:
                 logger.info(f"  Channel {r['channel_index']} — {r['flag_message']}")
             write_preprocessing_results(db_path, file, result)
+            save_corrected_tiff(file, result, corrected_dir)
 
             slide_name = os.path.splitext(os.path.basename(file))[0]
             output_dir = os.path.join(os.path.dirname(file), "qc_pngs", slide_name)
-            save_composite_png(file, output_dir)
+            save_composite_png(result, output_dir)
             logger.info(f" PNGs saved to {output_dir}")
         except Exception as e:
             logger.error(f"Slide {os.path.basename(file)} failed", exc_info=True)

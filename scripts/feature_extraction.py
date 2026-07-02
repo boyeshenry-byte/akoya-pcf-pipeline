@@ -86,12 +86,23 @@ def extract_intensity(mask, file_path):
     res = []
     
     with tifffile.TiffFile(file_path) as tif:
+        shaped = tif.shaped_metadata
+        if shaped and 'Channel' in shaped[0]:
+            channel_names_list = shaped[0]['Channel']['Name']
+        else:
+            channel_names_list = None
         for i, page in enumerate(tif.series[0].pages):
             channel_array = page.asarray()
-            meta = ET.fromstring(page.description)
-            name = meta.find('Name')
-            channel_name = name.text if name is not None else None
+            try:
+                meta = ET.fromstring(page.description)
+                name = meta.find('Name')
+                channel_name = name.text if name is not None else None
+            except (ET.ParseError, AttributeError):
+                channel_name = channel_names_list[i] if channel_names_list else None
             
+            # Verify channel names save with updated imagej format
+            logger.info(f"Channel {i}: {channel_name}")
+
             props = regionprops(mask, channel_array)
 
             for prop in props:    
@@ -233,10 +244,15 @@ if __name__ == "__main__":
             file_name = os.path.splitext(os.path.basename(file))[0] + "_mask.tiff"
             mask_path = os.path.join(mask_dir, file_name)
             mask = tifffile.imread(f"{mask_path}")
+
+            # Corrected illumination filename 
+            corrected_dir = os.path.join(project_path, "corrected")
+            corrected_illum = os.path.splitext(os.path.basename(file))[0]+ "_corrected.tiff"
+            illum_path = os.path.join(corrected_dir, corrected_illum)
             
             logger.info(f"Extracting {os.path.basename(file)}...")
             write_morphology(db_path, file, extract_morphology(mask))
-            write_intensity(db_path, file, extract_intensity(mask, file))
+            write_intensity(db_path, file, extract_intensity(mask, illum_path))
         except Exception as e:
             logger.error(f"Slide {os.path.basename(file)} failed", exc_info=True)
 
