@@ -157,7 +157,9 @@ def fetch_cell_intensity(cursor, slide_id):
     rows = cursor.fetchall()
 
     intensity_df = pd.DataFrame(rows, columns=cols)
-    
+    intensity_df['mean_intensity'] = intensity_df['mean_intensity'].apply(lambda x: float(x) if not isinstance(x, float) else x)
+    intensity_df['max_intensity'] = intensity_df['max_intensity'].apply(lambda x: float(x) if not isinstance(x, float) else x)
+
     mean_intensity_df = pd.pivot_table(intensity_df, index='cell_id', \
         columns='channel_name', values='mean_intensity')
     

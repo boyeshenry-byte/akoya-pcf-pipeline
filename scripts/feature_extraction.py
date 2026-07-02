@@ -110,8 +110,8 @@ def extract_intensity(mask, file_path):
                     'channel_name': channel_name,
                     'channel_index': i,
                     'label': prop.label,
-                    'mean_intensity': prop.intensity_mean,
-                    'max_intensity': prop.intensity_max
+                    'mean_intensity': float(prop.intensity_mean),
+                    'max_intensity': float(prop.intensity_max)
                 }
 
                 res.append(intensity_dict)
