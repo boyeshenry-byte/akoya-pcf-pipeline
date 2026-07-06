@@ -167,7 +167,6 @@ The pipeline uses a SQLite database with the following tables:
 - Consider pathologist review of representative segmentation overlays
 - JOSS publication
 - SLURM end-to-end testing with array jobs on HPC
-- Persist illumination-corrected images and wire into feature extraction and downstream analysis
 - Tune Gaussian sigma for illumination correction based on real data
 
 ---
