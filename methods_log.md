@@ -20,15 +20,14 @@ Scans project folders on the Isilon for .QPTIFF files and extracts metadata incl
 ---
 
 ## Preprocessing
-*Last updated: 2026-03-31*
+*Last updated: 2026-07-06*
 
 **Channel statistics** - Min, max, mean intensity and nonzero fraction computed per channel.
 
 **Low signal flagging** - Channels with nonzero fraction below 0.01 are flagged. Flagged 
 channels are excluded from illumination correction.
 
-**Illumination correction** - Gaussian background subtraction applied to unflagged channels. 
-Sigma set to 50. To be tuned based on prototype data validation.
+**Illumination correction** - Gaussian background subtraction applied to unflagged channels. Sigma is automatically selected by computing the sigma value that minimizes the coefficient of variation (CV) of background pixels, esitmated as the bottom 10th percentile of pixel intensities. The candidate range [10, 20, 50, 75, 100, 150] is based on the typical illumination artifact scales in CODEX/PhenoCycler data. The automatic selection can be overridden with the `--sigma` CLI argument for researchers with prior knowledge of their data. 
 
 **Added QC PNG subfolders** - Added subfolders to save per slide QC PNGs. 
 

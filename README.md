@@ -109,8 +109,8 @@ Execute in order:
 2. **ingestion.py** - extracts metadata and stores it in the db
    - `python scripts/ingestion.py --project my_project`
 
-3. **preprocessing.py** - compute channel statistics and correct low signals, save statistics to db and save QC PNGs
-   - `python scripts/preprocessing.py --project my_project`
+3. **preprocessing.py** - compute channel statistics and correct low signals, save statistics to db and save QC PNGs. Sigma is automatically selected per channel via CV minimization if not specified.
+   - `python scripts/preprocessing.py --project my_project [--sigma <value>]`
 
 4. **segmentation.py** - Extract DAPI channel and segment via Cellpose. Saves masks in project dir
    - `python scripts/segmentation.py --project my_project [--diameter 0]`
@@ -133,7 +133,7 @@ Execute in order:
 ### HPC Execution (Slurm)
 For running the full pipeline on the HPC, use the master submission script:
 ```bash
-bash submit_pipeline.sh --project my_project [--diameter None] [--n_neigh 10] [--panel_config configs/io60_panel_config.json]
+bash submit_pipeline.sh --project my_project [--diameter None] [--n_neigh 10] [--sigma <value>] [--panel_config configs/io60_panel_config.json]
 ```
 
 This submits a two-phased parallelized SLURM job. In phase one a stage only runs if the previous one completes successfully. Upon phase one completion phase two starts automatically automatic triggers for each stage. Logs are saved to `$AKOYA_ISILON/<project>/logs/`.
@@ -167,7 +167,6 @@ The pipeline uses a SQLite database with the following tables:
 - Consider pathologist review of representative segmentation overlays
 - JOSS publication
 - SLURM end-to-end testing with array jobs on HPC
-- Tune Gaussian sigma for illumination correction based on real data
 
 ---
 
@@ -221,4 +220,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Cleveland Clinic** -institutional support
 
 ---
-
