@@ -22,6 +22,10 @@ while [[ $# -gt 0 ]]; do
             PANEL_CONFIG="$2"
             shift 2
             ;;
+        --sigma)
+            SIGMA="$2"
+            shift 2
+            ;;
     esac
 
 done
@@ -45,7 +49,7 @@ JOB2=$(sbatch --parsable \
     --array=0-$readyFiles%3 \
     --output=$AKOYA_ISILON/$PROJECT/logs/preprocessing_%A_%a.log \
     --error=$AKOYA_ISILON/$PROJECT/logs/preprocessing_%A_%a.err \
-    --dependency=afterok:$JOB1 scripts/slurm/preprocessing.sh $PROJECT)
+    --dependency=afterok:$JOB1 scripts/slurm/preprocessing.sh $PROJECT $SIGMA)
 JOB3=$(sbatch --parsable \
     --array=0-$readyFiles%3 \
     --output=$AKOYA_ISILON/$PROJECT/logs/segmentation_%A_%a.log \

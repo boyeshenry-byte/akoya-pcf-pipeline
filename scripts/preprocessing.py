@@ -3,7 +3,7 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 2/20/2026
-# Version: v0.3.1
+# Version: v0.4.0
 # Contact: boyeshenry@gmail.com
 # Description: This script computes the channel statistics for each channel of each slide.
 # It flags channels that have low signals and corrects their illumination. It then writes the 
@@ -31,6 +31,8 @@ if SLURM_ARRAY:
 
 parser = argparse.ArgumentParser(description="Project folder name")
 parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+parser.add_argument("--sigma", default=None, type=float, help="Guassian sigma for illumination correction. If not specified,\
+    sigma is automatically selected per slide via CV minimization.")
 args = parser.parse_args()
 
 def compute_channel_stats(channel_array):
@@ -61,18 +63,44 @@ def flag_low_signals(stats, threshold = 0.01):
 
     return (False, "Signal OK")
 
-def correct_illumination(channel_array):
+def select_sigma(channel_array):
+    """
+    Computes the Guassian sigma for illumination correction.
+
+    : args : 
+    
+    channel_array : np array
+        An np array of channel illumination values
+
+    : returns :
+        
+    sigma : float    
+        A float value of the corrected Gaussian sigma for illumination correction
+    """
+    sigma_candidates = [10, 20, 50, 75, 100, 150]
+    cvs = []
+    for candidate in sigma_candidates:
+        corrected = correct_illumination(channel_array, candidate)
+        threshold = np.percentile(corrected, 10)
+        bg = corrected[corrected <= threshold]
+        cv = bg.std() / (bg.mean() + 1e-6)  # avoid division by zero
+        cvs.append(cv)
+    best_idx = np.argmin(cvs)
+
+    return sigma_candidates[best_idx]
+
+def correct_illumination(channel_array, sigma):
     """
     Apply illumination correction to a single channel.
     Returns a corrected array.
     """
-    background = gaussian(channel_array, sigma=50)
+    background = gaussian(channel_array, sigma=sigma)
     # avoid division by zero
     corrected = channel_array/(background + 1e-6)
     
     return corrected
 
-def process_slide(file_path):
+def process_slide(file_path, logger):
     """
     Run preprocessing on all channels of a QPTIFF.
     Returns a list of dicts - one per channel.
@@ -89,9 +117,11 @@ def process_slide(file_path):
             channel_name = name.text if name is not None else None
             stats = compute_channel_stats(channel)
             flagged, message = flag_low_signals(stats)
+            sigma = args.sigma if args.sigma is not None else select_sigma(channel)
+            logger.info(f" Channel {channel_name}: sigma={sigma}")
 
             if not flagged:
-                channel = correct_illumination(channel)
+                channel = correct_illumination(channel, sigma)
 
             res.append({
                 'channel_index': i,
@@ -99,7 +129,8 @@ def process_slide(file_path):
                 'stats': stats,
                 'flagged': flagged,
                 'flag_message': message,
-                'corrected_array': channel
+                'corrected_array': channel,
+                'sigma': sigma
             })
 
     return res
@@ -207,7 +238,7 @@ if __name__ == "__main__":
                 logger.info(f"Skipping {os.path.basename(file)}: already processed.")
                 continue
             logger.info(f"Preprocessing {os.path.basename(file)}...")
-            result = process_slide(file)
+            result = process_slide(file, logger)
             for r in result:
                 logger.info(f"  Channel {r['channel_index']} — {r['flag_message']}")
             write_preprocessing_results(db_path, file, result)
