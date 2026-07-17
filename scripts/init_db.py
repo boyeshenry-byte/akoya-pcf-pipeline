@@ -3,7 +3,6 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 2/25/2026
-# Version: v0.1.0
 # Contact: boyeshenry@gmail.com
 # Description: This script creates the database for Akoya PCF projects.
 # =============================================================================

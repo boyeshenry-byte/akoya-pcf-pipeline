@@ -3,7 +3,6 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 2/25/2026
-# Version: v0.2.01
 # Contact: boyeshenry@gmail.com
 # Description: This script contains the shared pipeline utilities including database helpers and logging setup.
 # =============================================================================

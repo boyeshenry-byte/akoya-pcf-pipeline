@@ -3,7 +3,6 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 2/20/2026
-# Version: v0.4.0
 # Contact: boyeshenry@gmail.com
 # Description: This script computes the channel statistics for each channel of each slide.
 # It flags channels that have low signals and corrects their illumination. It then writes the 

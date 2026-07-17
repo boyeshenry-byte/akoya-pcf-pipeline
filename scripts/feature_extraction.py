@@ -3,7 +3,6 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/5/2026
-# Version: v0.3.1
 # Contact: boyeshenry@gmail.com
 # Description: This script takes in mask files created by segmenting .tiff files from the Akoya PCF. It extracts the cell features
 # and intensities then writes them to a database for spatial analysis.
