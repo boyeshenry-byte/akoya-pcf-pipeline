@@ -18,6 +18,7 @@ import argparse
 from datetime import datetime
 from skimage.filters import gaussian
 from skimage import exposure
+from skimage.transform import downscale_local_mean
 from PIL import Image
 from ingestion import scan_for_files
 from utils import is_already_processed, setup_logging
@@ -63,9 +64,9 @@ def flag_low_signals(stats, threshold = 0.01):
 
     return (False, "Signal OK")
 
-def select_sigma(channel_array):
+def select_sigma(channel_array, logger):
     """
-    Computes the Guassian sigma for illumination correction.
+    This function downscales the cell images to compute Guassian sigma for illumination gradient correction. 
 
     : args : 
     
@@ -77,15 +78,22 @@ def select_sigma(channel_array):
     sigma : float    
         A float value of the corrected Gaussian sigma for illumination correction
     """
+
     sigma_candidates = [10, 20, 50, 75, 100, 150]
-    cvs = []
+    stds = []
+    # Compute stds
     for candidate in sigma_candidates:
         corrected = correct_illumination(channel_array, candidate)
-        threshold = np.percentile(corrected, 10)
-        bg = corrected[corrected <= threshold]
-        cv = bg.std() / (bg.mean() + 1e-6)  # avoid division by zero
-        cvs.append(cv)
-    best_idx = np.argmin(cvs)
+        downsampled = downscale_local_mean(corrected, (64, 64))
+        stds.append(downsampled.std())
+    
+    # Create curve of stds. Select point of diminishing returns
+    stds_array = np.array(stds)
+    diffs = np.diff(stds_array) # First diff
+    second_diff = np.diff(diffs) # Rate of change
+    best_idx = np.argmax(second_diff) + 1 # +1 to account for offset from diff
+
+    logger.info(f"CV values: {list(zip(sigma_candidates, stds))}")
 
     return sigma_candidates[best_idx]
 
@@ -117,7 +125,7 @@ def process_slide(file_path, logger):
             channel_name = name.text if name is not None else None
             stats = compute_channel_stats(channel)
             flagged, message = flag_low_signals(stats)
-            sigma = args.sigma if args.sigma is not None else select_sigma(channel)
+            sigma = args.sigma if args.sigma is not None else select_sigma(channel, logger)
             logger.info(f" Channel {channel_name}: sigma={sigma}")
 
             if not flagged:
