@@ -109,7 +109,7 @@ Execute in order:
 2. **ingestion.py** - extracts metadata and stores it in the db
    - `python scripts/ingestion.py --project my_project`
 
-3. **preprocessing.py** - compute channel statistics and correct low signals, save statistics to db and save QC PNGs. Sigma is automatically selected per channel via CV minimization if not specified.
+3. **preprocessing.py** - compute channel statistics and correct low signals, save statistics to db and save QC PNGs. Sigma is automatically selected per channel via coarse-to-fine elbow method on a downsampled image, or can be specified manually per project via CLI.
    - `python scripts/preprocessing.py --project my_project [--sigma <value>]`
 
 4. **segmentation.py** - Extract DAPI channel and segment via Cellpose. Saves masks in project dir

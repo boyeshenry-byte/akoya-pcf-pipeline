@@ -20,18 +20,26 @@ Scans project folders on the Isilon for .QPTIFF files and extracts metadata incl
 ---
 
 ## Preprocessing
-*Last updated: 2026-07-06*
+*Last updated: 2026-07-17*
 
 **Channel statistics** - Min, max, mean intensity and nonzero fraction computed per channel.
 
-**Low signal flagging** - Channels with nonzero fraction below 0.01 are flagged. Flagged 
-channels are excluded from illumination correction.
+**Low signal flagging** - Channels with nonzero fraction below 0.01 are flagged. Flagged channels are excluded from illumination correction.
 
-**Illumination correction** - Gaussian background subtraction applied to unflagged channels. Sigma is automatically selected by computing the sigma value that minimizes the coefficient of variation (CV) of background pixels, esitmated as the bottom 10th percentile of pixel intensities. The candidate range [10, 20, 50, 75, 100, 150] is based on the typical illumination artifact scales in CODEX/PhenoCycler data. The automatic selection can be overridden with the `--sigma` CLI argument for researchers with prior knowledge of their data. 
+**Illumination correction** - Gaussian background subtraction applied to unflagged channels. Sigma is automatically selected per channel via a coarse-to-fine elbow detection method on a downsampled image:
 
-**Added QC PNG subfolders** - Added subfolders to save per slide QC PNGs. 
+1. The channel is downsampled by factor K (image_height // 8000) to reduce compute while preserving broad spatial structure. Sigma candidates are scaled by 1/K to remain meaningful at the reduced resolution.
+2. Coarse search tests candidates [10, 20, 50, 75, 100, 150]. The std of each corrected downsampled image is computed. The candidate at the minimum first difference (flattest step in the std curve) is selected as the coarse sigma.
+3. Fine search tests 10 candidates in a narrow range around the coarse winner. Fine tuning is skipped if fewer than 3 distinct scaled values exist in the range.
+4. The selected sigma is applied to the full resolution image for correction.
 
-**Channel name** - Added a fix to write the channel name to the database. 
+The automatic selection can be overridden with the `--sigma` CLI argument for researchers with prior knowledge of their data.
+
+**Corrected images** - Illumination corrected images are saved to a `corrected/` subdirectory and used for downstream feature extraction.
+
+**Added QC PNG subfolders** - Added subfolders to save per slide QC PNGs.
+
+**Channel name** - Added a fix to write the channel name to the database.
 
 ---
 
