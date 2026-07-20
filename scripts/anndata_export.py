@@ -3,7 +3,6 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/11/2026
-# Version: v0.3.0
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the extracted cell features and intensities and converts them to .h5ad AnnData format for
 # phenotyping and spatial analysis

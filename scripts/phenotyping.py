@@ -3,7 +3,6 @@
 # Author: Henry Boyes
 # Institution: Cleveland Clinic
 # Date: 3/16/2026
-# Version: v0.4.2
 # Contact: boyeshenry@gmail.com
 # Description: This script takes the AnnData files and preprocesses them, performs Leiden clustering, and UMAP embedding. 
 # It then plots the UMAP data based on marker and cluster. It creates a heatmap based on the clustering and save the figures.
