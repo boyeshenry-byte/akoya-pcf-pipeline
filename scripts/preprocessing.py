@@ -78,23 +78,55 @@ def select_sigma(channel_array, logger):
         A float value of the corrected Gaussian sigma for illumination correction
     """
 
+    # Downsample and scale sigma
+    K = channel_array.shape[0]//8000
+    logger.info(f"K = {K}")
+
+    downsample = downscale_local_mean(channel_array, (K,K))
+
     sigma_candidates = [10, 20, 50, 75, 100, 150]
     stds = []
     # Compute stds
     for candidate in sigma_candidates:
-        corrected = correct_illumination(channel_array, candidate)
-        downsampled = downscale_local_mean(corrected, (64, 64))
-        stds.append(downsampled.std())
+        scaled_candidate = max(1,candidate//K)
+        corrected = correct_illumination(downsample, scaled_candidate)
+        stds.append(corrected.std())
     
     # Create curve of stds. Select point of diminishing returns
     stds_array = np.array(stds)
     diffs = np.diff(stds_array) # First diff
-    second_diff = np.diff(diffs) # Rate of change
-    best_idx = np.argmax(second_diff) + 1 # +1 to account for offset from diff
+    best_idx = np.argmin(diffs)
 
-    logger.info(f"CV values: {list(zip(sigma_candidates, stds))}")
+    coarse_sigma = sigma_candidates[best_idx]
+    lower = max(sigma_candidates[best_idx-1] if best_idx > 0 else coarse_sigma//2, K+1)
+    upper = sigma_candidates[best_idx+1] if best_idx < len(sigma_candidates)-1 else coarse_sigma*2
+    fine_candidates = sorted(set(np.linspace(lower, upper, 10).astype(int).tolist()))
 
-    return sigma_candidates[best_idx]
+    logger.info(f"Coarse stds: {list(zip(sigma_candidates, stds))}")
+    logger.info(f"Coarse sigma: {coarse_sigma}, Fine candidates: {fine_candidates}")
+
+    scaled_fine_vals = [max(1, c//K) for c in fine_candidates]
+
+    if len(set(scaled_fine_vals)) <3:
+        logger.info(f"Fine tunning skipped: Insufficient distinct values. Returning coarse sigma {coarse_sigma}")
+        return coarse_sigma
+
+    fine_stds = []
+    # Compute fine stds
+    for candidate in fine_candidates:
+        scaled_fine = max(1,candidate//K)
+        fine_corrected = correct_illumination(downsample, scaled_fine)
+        fine_stds.append(fine_corrected.std())
+    
+    # Create curve of stds. Select point of diminishing returns
+    fine_stds_array = np.array(fine_stds)
+    fine_diffs = np.diff(fine_stds_array) # First diff
+    fine_best_idx = np.argmin(fine_diffs) 
+
+    logger.info(f"Fine stds: {list(zip(fine_candidates, fine_stds))}")
+    logger.info(f"Selected sigma: {fine_candidates[fine_best_idx]}")
+
+    return fine_candidates[fine_best_idx]
 
 def correct_illumination(channel_array, sigma):
     """
