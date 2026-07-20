@@ -243,7 +243,9 @@ def save_composite_png(results, output_dir):
         channel_name= r['channel_name']
         filename = channel_name if channel_name else f"channel_{i}"
         if channel.max() > 0:
-            normalized = (channel / channel.max()*255).astype(np.uint8)
+            p_low = np.percentile(channel, 1)
+            p_high = np.percentile(channel, 99)
+            normalized = np.clip((channel - p_low) / (p_high - p_low + 1e-6) * 255, 0, 255).astype(np.uint8)
         else:
             normalized = channel.astype(np.uint8)
         Image.fromarray(normalized).save(f"{output_dir}/{filename}.png")
