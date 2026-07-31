@@ -20,7 +20,7 @@ Scans project folders on the Isilon for .QPTIFF files and extracts metadata incl
 ---
 
 ## Preprocessing
-*Last updated: 2026-07-17*
+*Last updated: 2026-07-27*
 
 **Channel statistics** - Min, max, mean intensity and nonzero fraction computed per channel.
 
@@ -40,6 +40,8 @@ The automatic selection can be overridden with the `--sigma` CLI argument for re
 **Added QC PNG subfolders** - Added subfolders to save per slide QC PNGs.
 
 **Channel name** - Added a fix to write the channel name to the database.
+
+**QC PNG normalization** - Updated normalization to use 1st-99th percentile range instead of max normalization, ensuring tissue structure is visible in corrected channel images.
 
 ---
 
