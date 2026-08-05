@@ -24,12 +24,6 @@ SLURM_ARRAY = os.environ.get("SLURM_ARRAY_TASK_ID")
 if SLURM_ARRAY:
     SLURM_ARRAY = int(SLURM_ARRAY)
 
-parser = argparse.ArgumentParser(description="Project folder name")
-parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
-parser.add_argument("--panel_config", default="configs/io60_panel_config.json", type=str, 
-help="Path to panel config JSON for cluster annotation")
-args = parser.parse_args()
-
 def find_slides(cursor, project):
     """
     This function checks if a slide has been completed anndata_export. It returns a tuple of slide_id and slide_name
@@ -232,8 +226,16 @@ def update_pipeline_status(cursor, status, slide_id):
     return
 
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(description="Project folder name")
+    parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+    parser.add_argument("--panel_config", default="configs/io60_panel_config.json", type=str, 
+    help="Path to panel config JSON for cluster annotation")
+    args = parser.parse_args()
+
     start_time = datetime.now()
     folder_name = args.project
+    panel_config = args.panel_config
     db_path = DB_PATH
     project_path = f"{ISILON_BASE}/{folder_name}"
 
@@ -273,7 +275,7 @@ if __name__ == "__main__":
             logger.info(f"Clustering {slide_name}")
             adata = cluster(adata)
             logger.info(f"Annotating {slide_name}")
-            adata = annotate_clusters(adata, args.panel_config)
+            adata = annotate_clusters(adata, panel_config)
             logger.info(f"Embedding {slide_name}")
             adata = embed(adata)
             logger.info(f"Generating QC plots for {slide_name}")
