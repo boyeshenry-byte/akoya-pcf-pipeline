@@ -29,11 +29,6 @@ SLURM_ARRAY = os.environ.get("SLURM_ARRAY_TASK_ID")
 if SLURM_ARRAY:
     SLURM_ARRAY = int(SLURM_ARRAY)
 
-parser = argparse.ArgumentParser(description="Project folder name")
-parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
-parser.add_argument("--sigma", default=None, type=float, help="Guassian sigma for illumination correction. If not specified,\
-    sigma is automatically selected per slide via CV minimization.")
-args = parser.parse_args()
 
 def compute_channel_stats(channel_array):
     """
@@ -139,7 +134,7 @@ def correct_illumination(channel_array, sigma):
     
     return corrected
 
-def process_slide(file_path, logger):
+def process_slide(file_path, logger, sigma=None):
     """
     Run preprocessing on all channels of a QPTIFF.
     Returns a list of dicts - one per channel.
@@ -253,6 +248,13 @@ def save_composite_png(results, output_dir):
     return
 
 if __name__ == "__main__":
+    # Set folder and sigma
+    parser = argparse.ArgumentParser(description="Project folder name")
+    parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+    parser.add_argument("--sigma", default=None, type=float, help="Guassian sigma for illumination correction. If not specified,\
+        sigma is automatically selected per slide via CV minimization.")
+    args = parser.parse_args()
+
     start_time=  datetime.now()
     folder_name = args.project
     db_path = DB_PATH
@@ -279,7 +281,7 @@ if __name__ == "__main__":
                 logger.info(f"Skipping {os.path.basename(file)}: already processed.")
                 continue
             logger.info(f"Preprocessing {os.path.basename(file)}...")
-            result = process_slide(file, logger)
+            result = process_slide(file, logger, args.sigma)
             for r in result:
                 logger.info(f"  Channel {r['channel_index']} — {r['flag_message']}")
             write_preprocessing_results(db_path, file, result)
