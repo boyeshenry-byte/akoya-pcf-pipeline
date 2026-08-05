@@ -17,10 +17,6 @@ from utils import setup_logging
 
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 
-parser = argparse.ArgumentParser(description="Project folder name")
-parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
-args = parser.parse_args()
-
 def find_slides(spatial_dir):
     """
     This function finds the completed slides based on the available .h5ad files
@@ -280,6 +276,11 @@ def generate_report(umap, zscores, co_occ, f, g, l):
 
 
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(description="Project folder name")
+    parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+    args = parser.parse_args()
+
     start_time = datetime.now()
     folder_name = args.project
     project_path = f"{ISILON_BASE}/{folder_name}"
