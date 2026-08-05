@@ -28,11 +28,6 @@ SLURM_ARRAY = os.environ.get("SLURM_ARRAY_TASK_ID")
 if SLURM_ARRAY:
     SLURM_ARRAY = int(SLURM_ARRAY)
 
-parser = argparse.ArgumentParser(description="Project folder name and cell diameter")
-parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
-parser.add_argument("--diameter", default=None, type=float, help="Enter the diameter of the cells (if known). Default is 0")
-args = parser.parse_args()
-
 def extract_dapi_channel(file_path):
     """
     This function extracts the DAPI channel from the image. It returns an array of the DAPI channel.
@@ -91,7 +86,7 @@ def tile_image(channel_array):
 gpu=torch.cuda.is_available()
 model = models.CellposeModel(gpu=gpu)
 
-def detect_cells(tiles, logger):
+def detect_cells(tiles, logger, diameter=None):
     """
     This function takes a tile and detects the cells in that tile.
 
@@ -106,7 +101,7 @@ def detect_cells(tiles, logger):
     for i, tile in enumerate(tiles):
         tile_array = tile['array']
         tile_norm = (tile_array / tile_array.max() * 255).astype(np.uint8) if tile_array.max() > 0 else tile_array.astype(np.uint8)
-        masks, flows, _ = model.eval(tile_norm, diameter=args.diameter)
+        masks, flows, _ = model.eval(tile_norm, diameter=diameter)
         labels, counts = np.unique(masks, return_counts=True)
         cell_counts = counts[labels !=0]
         mean_area = np.mean(cell_counts)
@@ -210,6 +205,11 @@ def write_segmentation_results(db_path, file_path, stitch, diams):
         conn.close()
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Project folder name and cell diameter")
+    parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+    parser.add_argument("--diameter", default=None, type=float, help="Enter the diameter of the cells (if known). Default is 0")
+    args = parser.parse_args()
+
     start_time = datetime.now()
     folder_name = args.project
     db_path = DB_PATH
@@ -238,7 +238,7 @@ if __name__ == "__main__":
             logger.info(f"Segmenting {os.path.basename(file)}...")
             dapi = extract_dapi_channel(file)
             tiles = tile_image(dapi)
-            cells = detect_cells(tiles, logger)
+            cells = detect_cells(tiles, logger, args.diameter)
             diams = float(np.mean([i['diams'] for i in cells]))
             logger.info(f"Raw diams from tiles: {[i['diams'] for i in cells]}")
             logger.info(f"Averaged diameter: {diams}")

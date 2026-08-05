@@ -26,11 +26,6 @@ SLURM_ARRAY = os.environ.get("SLURM_ARRAY_TASK_ID")
 if SLURM_ARRAY:
     SLURM_ARRAY = int(SLURM_ARRAY)
 
-parser = argparse.ArgumentParser(description="Project folder name")
-parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
-parser.add_argument("--n_neigh", default=10, type=int, help="Enter the number of neighbors of the cells . Default is 10")
-args = parser.parse_args()
-
 def find_slides(cursor, project):
     """
     This function checks if a slide has phenotyping completed. It returns a tuple of slide_id and slide_name
@@ -280,6 +275,12 @@ def update_pipeline_status(cursor, status, slide_id):
     return
 
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(description="Project folder name")
+    parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+    parser.add_argument("--n_neigh", default=10, type=int, help="Enter the number of neighbors of the cells . Default is 10")
+    args = parser.parse_args()
+
     start_time = datetime.now()
     folder_name = args.project
     n_neigh = args.n_neigh

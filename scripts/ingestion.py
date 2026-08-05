@@ -22,13 +22,6 @@ SLURM_ARRAY = os.environ.get("SLURM_ARRAY_TASK_ID")
 if SLURM_ARRAY:
     SLURM_ARRAY = int(SLURM_ARRAY)
 
-parser = argparse.ArgumentParser(description="Project folder name")
-parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
-parser.add_argument("--run_date", required=False, type=str, help="""Enter the date the run was performed. 
-If unsure of the run date, check the file name.""" )
-parser.add_argument("--panel_config", default="configs/io60_panel_config.json", type=str, 
-help="Path to panel config JSON for cluster annotation")
-args = parser.parse_args()
 
 def scan_for_files(base_path):
     """
@@ -171,6 +164,14 @@ def write_run(cursor, run_name, panel_config, run_date):
 
     
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Project folder name")
+    parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+    parser.add_argument("--run_date", required=False, type=str, help="""Enter the date the run was performed. 
+    If unsure of the run date, check the file name.""" )
+    parser.add_argument("--panel_config", default="configs/io60_panel_config.json", type=str, 
+    help="Path to panel config JSON for cluster annotation")
+    args = parser.parse_args()
+
     start_time = datetime.now()
     folder_name = args.project
     run_date = args.run_date

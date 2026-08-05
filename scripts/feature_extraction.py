@@ -19,17 +19,11 @@ from datetime import datetime
 from ingestion import scan_for_files
 from utils import is_already_processed, setup_logging
 
-
-
 ISILON_BASE = os.environ.get("AKOYA_ISILON")
 DB_PATH = os.environ.get("AKOYA_DB")
 SLURM_ARRAY = os.environ.get("SLURM_ARRAY_TASK_ID")
 if SLURM_ARRAY:
     SLURM_ARRAY = int(SLURM_ARRAY)
-
-parser = argparse.ArgumentParser(description="Project folder name")
-parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
-args = parser.parse_args()
 
 def extract_morphology(mask):
     """
@@ -218,6 +212,11 @@ def write_intensity(db_path, file_path, intensity_features):
 
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Project folder name")
+    parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+    args = parser.parse_args()
+
     start_time = datetime.now()
     folder_name = args.project
     db_path = DB_PATH
