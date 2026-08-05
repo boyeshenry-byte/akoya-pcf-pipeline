@@ -23,10 +23,6 @@ SLURM_ARRAY = os.environ.get("SLURM_ARRAY_TASK_ID")
 if SLURM_ARRAY:
     SLURM_ARRAY = int(SLURM_ARRAY)
 
-parser = argparse.ArgumentParser(description="Project folder name")
-parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
-args = parser.parse_args()
-
 def get_slides(cursor, project):
     """
     This function checks the project for slides that have 'Passed' feature_extraction in in the pipeline_status
@@ -314,6 +310,11 @@ def validate_adata(adata):
 
 
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(description="Project folder name")
+    parser.add_argument("--project", required=True, type=str, help="Enter the project folder name (case sensitive)")
+    args = parser.parse_args()
+
     start_time = datetime.now()
     folder_name = args.project
     db_path = DB_PATH
