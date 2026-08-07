@@ -4,7 +4,7 @@ import sys
 import logging
 import sqlite3
 sys.path.insert(0, 'scripts')
-from ingestion import scan_for_files, write_to_db
+from ingestion import scan_for_files, write_to_db, validate_file
 
 def test_scan_for_files(tmp_path):
     # create fake .qptiff files
@@ -41,3 +41,31 @@ def test_write_to_db(tmp_path):
     assert row is not None
     
     conn.close()
+
+def test_validate_file():
+    fake_metadata = {
+        'file_path': '/fake/path/slide1.qptiff',
+        'file_name': 'slide1.qptiff',
+        'slide_id': 'TEST001',
+        'num_channels': 3,
+        'markers': ['DAPI', 'Opal 480', 'Opal 520'],
+        'image_shape': (40000, 30000)
+    }
+
+    status, message = validate_file(fake_metadata)
+
+    assert status == True
+    assert message =='All checks passed!'
+
+def test_validate_file_invalid():
+    fake_metadata = {
+        'file_path': '/fake/path/slide1.qptiff',
+        'file_name': 'slide1.qptiff',
+        'slide_id': 'TEST001',
+        'num_channels': 8,
+        'markers': ['DAPI', 'Opal 480', 'Opal 520'],
+        'image_shape': (40000, 30000)
+    }
+    status, message = validate_file(fake_metadata)
+    assert status == False
+    assert message == "Number of channels does not match number of markers"
