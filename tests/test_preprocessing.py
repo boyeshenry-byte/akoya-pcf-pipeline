@@ -13,6 +13,14 @@ def test_compute_channel_stats():
     assert res['mean'] == 2.0
     assert res['nonzero_fraction'] == 0.8
 
+def test_compute_channel_stats_blank_array():
+    test_array = np.zeros(5)
+    res = compute_channel_stats(test_array)
+    assert res['min'] == 0
+    assert res['max'] ==0
+    assert res['mean'] == 0
+    assert res['nonzero_fraction'] == 0
+
 def test_flag_low_signals():
     threshold_low = {'nonzero_fraction': 0.001}
     threshold_high = {'nonzero_fraction':0.02}
@@ -21,6 +29,12 @@ def test_flag_low_signals():
 
     assert low == (True, "Low signal detected")
     assert high == (False, "Signal OK")
+
+def test_flag_low_signals_boundary():
+    boundary_stats = {'nonzero_fraction': 0.01}
+    flagged, message = flag_low_signals(boundary_stats)
+    assert flagged == False
+    assert message == "Signal OK"
 
 def test_select_sigma():
     logger = logging.getLogger('test')
@@ -31,7 +45,7 @@ def test_select_sigma():
     assert res >= sigma_candidates[0]
     assert res <=sigma_candidates[-1]*2
 
-def test_blank_sigma():
+def test_select_sigma_blank_array():
     logger = logging.getLogger('test')
     test_array = np.zeros((16000, 16000), dtype=np.uint16)
     res = select_sigma(test_array, logger)
