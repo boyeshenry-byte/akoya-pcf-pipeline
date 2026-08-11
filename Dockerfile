@@ -19,8 +19,6 @@ WORKDIR  /app
 COPY requirements.txt .
 
 RUN pip3 install --no-cache-dir -r requirements.txt
-#Install squidpy separately to resolve PyPI installation issues
-RUN pip3 install --no-cache-dir git+https://github.com/scverse/squidpy.git@v1.8.1
 
 COPY scripts/ ./scripts/
 COPY configs/ ./configs/
