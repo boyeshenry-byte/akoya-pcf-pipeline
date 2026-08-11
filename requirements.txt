@@ -15,3 +15,4 @@ scipy==1.16.3
 squidpy==1.8.1
 imagecodecs==2025.8.2
 pytest==9.1.1
+kaliedo
