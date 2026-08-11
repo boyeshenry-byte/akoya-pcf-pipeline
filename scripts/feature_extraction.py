@@ -60,7 +60,7 @@ def extract_morphology(mask):
     
     return res
 
-def extract_intensity(mask, file_path):
+def extract_intensity(mask, file_path, logger):
     """
     This function takes in a mask, generated from segmentation.py. It extracts the features of the channel intensity and pairs it with
     a channel from file_path. It returns a list of dicts for each cell in the mask.
@@ -250,7 +250,7 @@ if __name__ == "__main__":
             
             logger.info(f"Extracting {os.path.basename(file)}...")
             write_morphology(db_path, file, extract_morphology(mask))
-            write_intensity(db_path, file, extract_intensity(mask, illum_path))
+            write_intensity(db_path, file, extract_intensity(mask, illum_path, logger))
         except Exception as e:
             logger.error(f"Slide {os.path.basename(file)} failed", exc_info=True)
 
