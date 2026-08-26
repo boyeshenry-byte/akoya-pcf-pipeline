@@ -12,6 +12,9 @@ import anndata as ad
 import os
 import argparse
 import plotly.express as px
+import scanpy as sc
+import base64
+import io
 from datetime import datetime
 from utils import setup_logging
 
@@ -131,7 +134,11 @@ def generate_umap_clusters(adata):
 
     fig = []
 
+    MAX_CELLS = 20000
+
     for i, a in enumerate(adata):
+        if len(a) > MAX_CELLS:
+            sc.pp.subsample(a, n_obs=MAX_CELLS, random_state=42)
         fig.append(px.scatter(x=a.obsm['X_umap'][:,0], y=a.obsm['X_umap'][:,1], color=a.obs['leiden'], \
             title=f"Slide {a.obs['slide_name'].iloc[0]} UMAP"))
 
@@ -238,6 +245,12 @@ def generate_ripley_curves(ripley_f, ripley_g, ripley_l, slide_name):
 
     return fig_f, fig_g, fig_l
 
+def fig_to_base64(fig):
+    img_bytes = fig.to_image(format='png', width=1200, height=600)
+    encoded = base64.b64encode(img_bytes).decode('utf-8')
+
+    return f'<img src="data:image/png;base64,{encoded}" style="width:100%;margin-bottom:20px;"/>'
+
 def generate_report(umap, zscores, co_occ, f, g, l):
     """
     This function generates an .html report of all plots generated in the script
@@ -268,10 +281,8 @@ def generate_report(umap, zscores, co_occ, f, g, l):
         An html string 
     """
 
-    report = ''.join([i.to_html(full_html=False) for i in umap]) + ''.join([i.to_html(full_html=False) for i in zscores])\
-        + ''.join([i.to_html(full_html=False) for i in co_occ]) + ''.join([i.to_html(full_html=False) for i in f]) + \
-            ''.join([i.to_html(full_html=False) for i in g]) + ''.join([i.to_html(full_html=False) for i in l])
-
+    sections =[umap, zscores, co_occ, f, g, l]
+    report=''.join(fig_to_base64(fig) for section in sections for fig in section)
     return report
 
 
