@@ -39,7 +39,7 @@ Docker Hub: [boyesh/akoya-pcf](https://hub.docker.com/repository/docker/boyesh/a
 A GPU-enabled Docker image is available on Docker Hub and is automatically built on tagged releases via GitHub Actions
 
 ```bash
-docker pull boyesh/akoya-pcf:v0.5.6
+docker pull boyesh/akoya-pcf:v0.5.7
 ```
 
 Run a pipeline stage:
@@ -48,7 +48,7 @@ docker run --gpus all \
    -e AKOYA_ISILON=/path/to/data \
    -e AKOYA_DB=/path/to/akoya.db \
    -v /path/to/data:/path/to/data \
-   boyesh/akoya-pcf:v0.5.6 \
+   boyesh/akoya-pcf:v0.5.7 \
    python3 scripts/segmentation.py --project my_project
 ```
 
