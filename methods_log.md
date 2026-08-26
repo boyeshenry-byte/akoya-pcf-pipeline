@@ -140,13 +140,15 @@ Updated to `.intensity_mean` and `.intensity_max` respectively.
 ---
 
 ## Report Generation
-*Last updated: 2026-04-20*
+*Last updated: 2026-08-26*
 
 **HTML** - The decision was made to generate reports using html as opposed to streamlit or other interactive dashboards due to the need to keep projects separated for researchers using the service. 
 
 **UMAP** - UMAP figures are generated per-slide as opposed to a grouped overview of the project as different tissues/locations would exist on the slide and averaging position would not make sense in reporting. 
 
-**Averages** - For the remainder of reports, the project average is returned as a general overview of the data from the project. 
+**Averages** - For the remainder of reports, the project average is returned as a general overview of the data from the project.
+
+**Static Report** - The HTML report was changed to a static png from the interactive plotly outputs to reduce file size and rendering issues. 
 
 ---
 
